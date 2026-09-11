@@ -1,6 +1,6 @@
 import { useEffect, useState, type RefObject } from 'react'
 import type { Alimento, ObjetivosDieta } from '../lib/tipos'
-import { colorCategoria } from '../lib/categorias'
+import { colorCategoria, CATEGORIA_ETIQUETA } from '../lib/categorias'
 import { Card } from './ui/Card'
 import { ChromosomeStrip } from './viz/ChromosomeStrip'
 import { ActivityRings, type AnilloMacro } from './viz/ActivityRings'
@@ -70,28 +70,48 @@ export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanel
     { kcal: 0, proteina_g: 0, carbohidratos_g: 0, grasa_g: 0 },
   )
 
+  // Ninguno de los 4 colores es --ios-red a propósito: ese color queda
+  // reservado exclusivamente para la señal de "te pasaste de la meta"
+  // (ver ActivityRings). Si un macro normal también fuera rojo, un anillo
+  // lleno y rojo sería ambiguo: ¿está en la meta o excedido?
   const anillos: AnilloMacro[] = objetivos
     ? [
         { etiqueta: 'Calorías', logrado: macros.kcal, objetivo: objetivos.kcal, color: 'var(--ios-blue)', unidad: 'kcal' },
-        { etiqueta: 'Proteína', logrado: macros.proteina_g, objetivo: objetivos.proteina_g, color: 'var(--ios-red)', unidad: 'g' },
+        { etiqueta: 'Proteína', logrado: macros.proteina_g, objetivo: objetivos.proteina_g, color: 'var(--ios-green)', unidad: 'g' },
         { etiqueta: 'Carbohidratos', logrado: macros.carbohidratos_g, objetivo: objetivos.carbohidratos_g, color: 'var(--ios-orange)', unidad: 'g' },
         { etiqueta: 'Grasa', logrado: macros.grasa_g, objetivo: objetivos.grasa_g, color: 'var(--ios-indigo)', unidad: 'g' },
       ]
     : []
 
+  const categoriasPresentes = [...new Set(alimentos.map((a) => a.categoria))]
+
   return (
     <div className="dieta-panel">
-      <Card titulo="Genotipo — porciones por alimento">
+      <Card
+        titulo="Genotipo — porciones por alimento"
+        subtitulo={`Altura de cada barra = porciones respecto al máximo permitido de ese alimento; color = categoría. Pasá el mouse sobre una barra para ver el nombre. ${elegidos.length} de ${alimentos.length} alimentos activos.`}
+      >
         <ChromosomeStrip
           valores={genoma}
           maximos={alimentos.map((a) => a.max_porciones)}
           colores={alimentos.map((a) => colorCategoria(a.categoria))}
           nombres={alimentos.map((a) => a.nombre)}
         />
+        <div className="categoria-leyenda">
+          {categoriasPresentes.map((cat) => (
+            <span key={cat} className="categoria-leyenda-item">
+              <span className="categoria-leyenda-punto" style={{ background: colorCategoria(cat) }} />
+              {CATEGORIA_ETIQUETA[cat] ?? cat}
+            </span>
+          ))}
+        </div>
       </Card>
 
       {objetivos && (
-        <Card titulo="Macros vs. meta">
+        <Card
+          titulo="Macros vs. meta"
+          subtitulo="Anillo lleno = llegaste a la meta de ese macro. Si se pone rojo y pulsa, te pasaste; los números de la derecha son el valor exacto."
+        >
           <ActivityRings anillos={anillos} />
         </Card>
       )}
