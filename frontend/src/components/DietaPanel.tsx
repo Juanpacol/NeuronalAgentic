@@ -1,8 +1,6 @@
 import { useEffect, useState, type RefObject } from 'react'
 import type { Alimento, ObjetivosDieta } from '../lib/tipos'
-import { colorCategoria, CATEGORIA_ETIQUETA } from '../lib/categorias'
 import { Card } from './ui/Card'
-import { ChromosomeStrip } from './viz/ChromosomeStrip'
 import { ActivityRings, type AnilloMacro } from './viz/ActivityRings'
 import { CheshireGrin } from './viz/CheshireGrin'
 
@@ -15,11 +13,15 @@ interface DietaPanelProps {
 const FORMATO_COP = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 
 /**
- * La mejor dieta de la generación actual: tira de cromosoma (porciones por
- * alimento, coloreada por categoría), anillos de progreso por macro y la
+ * La mejor dieta de la generación actual: anillos de progreso por macro y la
  * tabla con el detalle. Se refresca a ~8Hz leyendo refs (no estado), igual
  * que el resto de la app, para no forzar re-render de React en cada
  * generación del AG.
+ *
+ * Hubo una tira de "genotipo" (ChromosomeStrip, porciones por alimento
+ * coloreadas por categoría) antes acá. Se sacó: incluso con leyenda y
+ * subtítulo explicando el eje, no comunicaba nada que la tabla de detalle
+ * de abajo no dijera ya con nombres y números reales — puro ruido visual.
  */
 export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanelProps) {
   const [, forzarRender] = useState(0)
@@ -83,30 +85,8 @@ export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanel
       ]
     : []
 
-  const categoriasPresentes = [...new Set(alimentos.map((a) => a.categoria))]
-
   return (
     <div className="dieta-panel">
-      <Card
-        titulo="Genotipo — porciones por alimento"
-        subtitulo={`Altura de cada barra = porciones respecto al máximo permitido de ese alimento; color = categoría. Pasá el mouse sobre una barra para ver el nombre. ${elegidos.length} de ${alimentos.length} alimentos activos.`}
-      >
-        <ChromosomeStrip
-          valores={genoma}
-          maximos={alimentos.map((a) => a.max_porciones)}
-          colores={alimentos.map((a) => colorCategoria(a.categoria))}
-          nombres={alimentos.map((a) => a.nombre)}
-        />
-        <div className="categoria-leyenda">
-          {categoriasPresentes.map((cat) => (
-            <span key={cat} className="categoria-leyenda-item">
-              <span className="categoria-leyenda-punto" style={{ background: colorCategoria(cat) }} />
-              {CATEGORIA_ETIQUETA[cat] ?? cat}
-            </span>
-          ))}
-        </div>
-      </Card>
-
       {objetivos && (
         <Card
           titulo="Macros vs. meta"

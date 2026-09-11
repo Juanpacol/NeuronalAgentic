@@ -170,30 +170,6 @@
   gap: var(--sp-4);
 }
 
-.categoria-leyenda {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-4);
-  margin-top: var(--sp-3);
-  padding-top: var(--sp-2);
-  border-top: 1px solid var(--separator);
-}
-
-.categoria-leyenda-item {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-1);
-  font-size: var(--fs-footnote);
-  color: var(--label-2);
-}
-
-.categoria-leyenda-punto {
-  width: 9px;
-  height: 9px;
-  border-radius: var(--r-full);
-  flex: none;
-}
-
 .dieta-tabla-wrap {
   overflow-x: auto;
 }
