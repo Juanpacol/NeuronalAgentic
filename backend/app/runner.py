@@ -4,9 +4,8 @@ from __future__ import annotations
 import asyncio
 import uuid
 
-import numpy as np
-
 from . import config
+from .ag.alimentos import ContextoDieta
 from .ag.motor import EstadoGeneracion, evolucionar
 from .ag.parametros import ParametrosAG
 from .ag.representacion import decodificar
@@ -20,7 +19,7 @@ class Run:
         self.pausa.set()  # corriendo por defecto
         self.detener_flag = False
         self.historial: list[dict] = []
-        self.ultima_distancia: float | None = None
+        self.ultima_aptitud: float | None = None
         self.task: asyncio.Task | None = None
         self.terminado = False
         self.razon: str | None = None
@@ -68,11 +67,9 @@ class RunManager:
         run = self._runs.get(run_id)
         return run.historial if run else []
 
-    async def ejecutar(self, run: Run, matriz_distancias: np.ndarray, enviar):
+    async def ejecutar(self, run: Run, ctx: ContextoDieta, enviar):
         """Corre el motor y envía un mensaje por generación usando `enviar` (coroutine)."""
-        gen = evolucionar(
-            run.params, matriz_distancias, debe_detener=lambda: run.detener_flag
-        )
+        gen = evolucionar(run.params, ctx, debe_detener=lambda: run.detener_flag)
         try:
             while True:
                 await run.pausa.wait()
@@ -81,18 +78,23 @@ class RunManager:
                 except StopAsyncIteration:
                     break
 
+                # Mayor aptitud es mejor: la comparación va al revés que en el
+                # dominio anterior, donde se minimizaba una distancia.
                 mejora = (
-                    run.ultima_distancia is None
-                    or estado.distancia_mejor < run.ultima_distancia
+                    run.ultima_aptitud is None
+                    or estado.mejor_aptitud > run.ultima_aptitud
                 )
                 if mejora:
-                    run.ultima_distancia = estado.distancia_mejor
+                    run.ultima_aptitud = estado.mejor_aptitud
 
                 run.historial.append(
                     {
                         "generacion": estado.generacion,
-                        "mejor": estado.distancia_mejor,
-                        "promedio": estado.distancia_promedio,
+                        "mejor": estado.mejor_aptitud,
+                        "promedio": estado.aptitud_promedio,
+                        "costo": estado.costo_mejor,
+                        "pen_macro": estado.pen_macro_mejor,
+                        "pen_costo": estado.pen_costo_mejor,
                     }
                 )
 
@@ -102,14 +104,17 @@ class RunManager:
                     "mejor_aptitud": estado.mejor_aptitud,
                     "aptitud_promedio": estado.aptitud_promedio,
                     "aptitud_peor": estado.aptitud_peor,
-                    "distancia_mejor": estado.distancia_mejor,
-                    "distancia_promedio": estado.distancia_promedio,
-                    "distancia_peor": estado.distancia_peor,
+                    "costo_mejor": estado.costo_mejor,
+                    "desviacion_mejor": estado.desviacion_mejor,
+                    "pen_macro": estado.pen_macro_mejor,
+                    "pen_costo": estado.pen_costo_mejor,
+                    "macros_mejor": estado.macros_mejor,
+                    "aptitudes": [float(a) for a in estado.aptitudes],
                     "tiempo_ms": estado.tiempo_ms,
                     "generaciones_sin_mejora": estado.generaciones_sin_mejora,
                 }
                 if mejora:
-                    mensaje["ruta_mejor"] = decodificar(estado.ruta_mejor)
+                    mensaje["genoma_mejor"] = decodificar(estado.genoma_mejor)
 
                 await enviar(mensaje)
 

@@ -1,16 +1,11 @@
-"""Endpoint WebSocket /ws/evolucion: streaming de generaciones del algoritmo genético (TSP)."""
+"""Endpoint WebSocket /ws/evolucion: streaming de generaciones del AG de dieta."""
 from __future__ import annotations
 
 import asyncio
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from .ag.ciudades import (
-    calcular_matriz_distancias,
-    generar_ciudades,
-    generar_mapa_metro_medellin,
-    nombres_metro_medellin,
-)
+from .ag.alimentos import catalogo_serializable, contexto_desde_parametros
 from .ag.parametros import ParametrosAG
 from .runner import RunManager
 
@@ -37,31 +32,26 @@ async def ws_evolucion(websocket: WebSocket):
 
                 params_dict = mensaje.get("params") or {}
                 params = ParametrosAG(**params_dict)
-
-                nombres_ciudades = None
-                if params.origen_ciudades == "metro_medellin":
-                    ciudades = generar_mapa_metro_medellin()
-                    nombres_ciudades = nombres_metro_medellin()
-                else:
-                    ciudades = generar_ciudades(params.num_ciudades, params.semilla_ciudades)
-                matriz_distancias = calcular_matriz_distancias(ciudades)
+                ctx = contexto_desde_parametros(params)
 
                 run = run_manager.crear_run(params)
-                mensaje_iniciado = {
+                await websocket.send_json({
                     "tipo": "iniciado",
                     "run_id": run.run_id,
-                    "ciudades": ciudades.tolist(),
-                }
-                if nombres_ciudades is not None:
-                    mensaje_iniciado["nombres_ciudades"] = nombres_ciudades
-                await websocket.send_json(mensaje_iniciado)
+                    "alimentos": catalogo_serializable(),
+                    "objetivos": {
+                        "kcal": params.objetivo_kcal,
+                        "proteina_g": params.objetivo_proteina_g,
+                        "carbohidratos_g": params.objetivo_carbohidratos_g,
+                        "grasa_g": params.objetivo_grasa_g,
+                        "presupuesto_cop": params.presupuesto_cop,
+                    },
+                })
 
                 async def enviar(msg, ws=websocket):
                     await ws.send_json(msg)
 
-                task = asyncio.create_task(
-                    run_manager.ejecutar(run, matriz_distancias, enviar)
-                )
+                task = asyncio.create_task(run_manager.ejecutar(run, ctx, enviar))
                 run.task = task
 
             elif tipo == "pausar" and run is not None:

@@ -1,4 +1,4 @@
-"""Aplicación FastAPI: algoritmo genético para el problema del vendedor viajero (TSP)."""
+"""Aplicación FastAPI: algoritmo genético para optimización de dieta."""
 from __future__ import annotations
 
 from fastapi import FastAPI
@@ -8,7 +8,7 @@ from . import config
 from .api import router as api_router
 from .ws import router as ws_router
 
-app = FastAPI(title="AG Triángulos")
+app = FastAPI(title="AG Dieta")
 
 app.add_middleware(
     CORSMiddleware,

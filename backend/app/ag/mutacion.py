@@ -1,10 +1,24 @@
-"""Operadores de mutación para permutaciones (TSP).
+"""Operadores de mutación (C4c) sobre el vector de porciones.
 
-Todos reciben (genoma, prob, rng) y devuelven una nueva ruta (permutación
-válida). A diferencia de la versión de aproximación de imágenes, aquí los
-cuatro operadores son literales y correctos para el problema: TSP es
-exactamente el dominio para el que se diseñaron intercambio/desplazamiento/
-inserción/heurística en la literatura clásica de AG.
+NOTA HONESTA PARA EL INFORME
+----------------------------
+De los cuatro operadores que pide el curso, solo dos tienen sentido pleno sobre
+un cromosoma de cantidades:
+
+- `heuristica`  -> con sentido pleno. Es la mutación natural de un vector de
+                   cantidades: búsqueda local en la vecindad del individuo.
+- `intercambio` -> con sentido DENTRO DE CATEGORÍA. Intercambiar las porciones
+                   de arroz y pollo es absurdo nutricionalmente; intercambiar
+                   arroz y arepa (ambos carbohidratos) es un movimiento real de
+                   "sustituir un básico por otro".
+- `desplazamiento` y `insercion` -> CASI ARBITRARIOS. Son operadores de
+                   permutación: presuponen que la posición de un gen significa
+                   algo. Aquí la posición es solo el índice del alimento en el
+                   catálogo, un orden convencional sin contenido. Se implementan
+                   por completitud frente al requisito de la asignatura y se
+                   espera que rindan peor que los dos anteriores. La tabla
+                   comparativa del informe debería mostrarlo: eso es un
+                   resultado del experimento, no un fallo de la implementación.
 """
 from __future__ import annotations
 
@@ -12,71 +26,107 @@ import random
 
 import numpy as np
 
-
-def intercambio(genoma: np.ndarray, prob: float, rng: random.Random) -> np.ndarray:
-    """Mutación de intercambio (swap): intercambia dos ciudades de posición."""
-    salida = genoma.copy()
-    if rng.random() < prob:
-        i, j = rng.sample(range(len(salida)), 2)
-        salida[i], salida[j] = salida[j], salida[i]
-    return salida
-
-
-def desplazamiento(genoma: np.ndarray, prob: float, rng: random.Random) -> np.ndarray:
-    """Mutación de desplazamiento: toma un segmento contiguo y lo mueve a otra posición."""
-    salida = genoma.copy()
-    n = len(salida)
-    if rng.random() < prob and n > 3:
-        i = rng.randrange(n)
-        largo = rng.randint(1, max(1, n // 4))
-        indices_segmento = {(i + k) % n for k in range(largo)}
-        segmento = [salida[(i + k) % n] for k in range(largo)]
-        resto = [x for idx, x in enumerate(salida) if idx not in indices_segmento]
-        destino = rng.randrange(len(resto) + 1)
-        nueva = resto[:destino] + segmento + resto[destino:]
-        salida = np.array(nueva, dtype=genoma.dtype)
-    return salida
-
-
-def insercion(genoma: np.ndarray, prob: float, rng: random.Random) -> np.ndarray:
-    """Mutación de inserción: extrae una ciudad y la reinserta en otra posición."""
-    salida = list(genoma)
-    if rng.random() < prob and len(salida) > 2:
-        origen, destino = rng.sample(range(len(salida)), 2)
-        ciudad = salida.pop(origen)
-        salida.insert(destino, ciudad)
-    return np.array(salida, dtype=genoma.dtype)
+from .alimentos import ContextoDieta
+from .representacion import recortar
 
 
 def heuristica(
-    genoma: np.ndarray,
-    prob: float,
-    rng: random.Random,
-    matriz_distancias: np.ndarray | None = None,
+    genoma: np.ndarray, prob: float, rng: random.Random, ctx: ContextoDieta | None = None
 ) -> np.ndarray:
-    """Mutación heurística: prueba varios intercambios candidatos y se queda con
-    el que más reduce la distancia de la ruta (2-opt simplificado por muestreo).
-    Sin matriz_distancias degrada a un intercambio simple aleatorio."""
-    salida = genoma.copy()
+    """Perturbación gaussiana por gen: g += round(N(0, sigma)), recortado a las cotas.
+
+    sigma es proporcional a la cota del alimento (0.15 * max_porciones[i]), para
+    que un alimento con cota 4 se explore con pasos mayores que uno con cota 2.
+    """
+    salida = genoma.astype(np.int32).copy()
+    if ctx is None:
+        # Sin contexto no se conocen las cotas; se degrada a un paso unitario.
+        for i in range(len(salida)):
+            if rng.random() < prob:
+                salida[i] = max(0, salida[i] + rng.choice([-1, 1]))
+        return salida
+
+    max_porciones = ctx.max_porciones
+    for i in range(len(salida)):
+        if rng.random() < prob:
+            sigma = max(0.5, 0.15 * float(max_porciones[i]))
+            salida[i] = salida[i] + round(rng.gauss(0, sigma))
+    return recortar(salida, max_porciones)
+
+
+def intercambio(
+    genoma: np.ndarray, prob: float, rng: random.Random, ctx: ContextoDieta | None = None
+) -> np.ndarray:
+    """Intercambia las porciones de dos alimentos de la MISMA categoría.
+
+    Con sentido nutricional: equivale a sustituir un básico por otro comparable
+    (arroz por arepa), no a cambiar proteína por carbohidrato.
+    """
+    salida = genoma.astype(np.int32).copy()
     if rng.random() >= prob:
         return salida
 
-    n = len(salida)
-    if matriz_distancias is None or n < 4:
-        i, j = rng.sample(range(n), 2)
+    if ctx is None:
+        i, j = rng.sample(range(len(salida)), 2)
         salida[i], salida[j] = salida[j], salida[i]
         return salida
 
-    from .fitness import calcular_distancia_ruta
+    # Solo categorías con al menos dos alimentos admiten intercambio.
+    candidatas = [idx for idx in ctx.indices_por_categoria.values() if len(idx) >= 2]
+    if not candidatas:
+        return salida
+    grupo = candidatas[rng.randrange(len(candidatas))]
+    i, j = rng.sample(list(grupo), 2)
+    salida[i], salida[j] = salida[j], salida[i]
+    # El intercambio puede violar cotas: dos alimentos de la misma categoría
+    # pueden tener max_porciones distintos (p. ej. arroz 4 vs avena 3).
+    return recortar(salida, ctx.max_porciones) if ctx is not None else salida
 
-    mejor_dist = calcular_distancia_ruta(salida, matriz_distancias)
-    mejor_candidato = salida
-    for _ in range(5):
-        candidato = salida.copy()
-        i, j = rng.sample(range(n), 2)
-        candidato[i], candidato[j] = candidato[j], candidato[i]
-        dist = calcular_distancia_ruta(candidato, matriz_distancias)
-        if dist < mejor_dist:
-            mejor_dist = dist
-            mejor_candidato = candidato
-    return mejor_candidato
+
+def desplazamiento(
+    genoma: np.ndarray, prob: float, rng: random.Random, ctx: ContextoDieta | None = None
+) -> np.ndarray:
+    """Rotación circular de un segmento contiguo de genes.
+
+    Operador de permutación: el orden del catálogo NO es una dimensión con
+    significado, así que este movimiento es casi arbitrario. Incluido por
+    completitud frente al requisito del curso; se espera que rinda peor.
+    """
+    salida = genoma.astype(np.int32).copy()
+    n = len(salida)
+    if rng.random() >= prob or n < 3:
+        return salida
+
+    i = rng.randrange(n)
+    largo = rng.randint(2, max(2, n // 3))
+    indices = [(i + k) % n for k in range(largo)]
+    valores = [int(salida[k]) for k in indices]
+    corrimiento = rng.randint(1, largo - 1)
+    rotados = valores[corrimiento:] + valores[:corrimiento]
+    for k, v in zip(indices, rotados):
+        salida[k] = v
+
+    return recortar(salida, ctx.max_porciones) if ctx is not None else salida
+
+
+def insercion(
+    genoma: np.ndarray, prob: float, rng: random.Random, ctx: ContextoDieta | None = None
+) -> np.ndarray:
+    """Extrae el valor de un gen y lo reinserta en otra posición, desplazando el resto.
+
+    Operador de permutación: igual que `desplazamiento`, el orden del catálogo no
+    significa nada, así que el movimiento es casi arbitrario. Incluido por
+    completitud frente al requisito del curso; se espera que rinda peor.
+    """
+    salida = genoma.astype(np.int32).copy()
+    n = len(salida)
+    if rng.random() >= prob or n < 2:
+        return salida
+
+    valores = [int(x) for x in salida]
+    origen, destino = rng.sample(range(n), 2)
+    v = valores.pop(origen)
+    valores.insert(destino, v)
+    salida = np.array(valores, dtype=np.int32)
+
+    return recortar(salida, ctx.max_porciones) if ctx is not None else salida

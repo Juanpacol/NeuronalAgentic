@@ -7,7 +7,7 @@ from .parametros import ParametrosAG
 def evaluar_parada(
     params: ParametrosAG,
     generacion: int,
-    distancia_mejor: float,
+    aptitud_mejor: float,
     generaciones_sin_mejora: int,
     detener_externo: bool = False,
 ) -> str | None:
@@ -16,8 +16,11 @@ def evaluar_parada(
         return "detenido_por_usuario"
 
     if params.criterio_parada == "objetivo":
-        if distancia_mejor <= params.distancia_objetivo:
-            return "distancia_objetivo_alcanzada"
+        # OJO CON LA DIRECCIÓN: en este dominio MAYOR aptitud es mejor, así que
+        # se para al ALCANZAR o superar el objetivo. En el dominio anterior
+        # (TSP) la métrica era distancia y la comparación iba al revés.
+        if aptitud_mejor >= params.aptitud_objetivo:
+            return "aptitud_objetivo_alcanzada"
         if generacion >= params.max_generaciones:
             return "max_generaciones"
         return None

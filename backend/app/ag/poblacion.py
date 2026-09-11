@@ -1,4 +1,4 @@
-"""Manejo de la población: creación y estadísticas de aptitud."""
+"""Manejo de la población (C1): creación y estadísticas de aptitud."""
 from __future__ import annotations
 
 import random
@@ -8,9 +8,9 @@ import numpy as np
 from .representacion import crear_individuo
 
 
-def crear_poblacion(n: int, num_ciudades: int, rng: random.Random) -> list[np.ndarray]:
+def crear_poblacion(n: int, max_porciones: np.ndarray, rng: random.Random) -> list[np.ndarray]:
     """Crea n individuos aleatorios."""
-    return [crear_individuo(num_ciudades, rng) for _ in range(n)]
+    return [crear_individuo(max_porciones, rng) for _ in range(n)]
 
 
 def estadisticas(aptitudes: np.ndarray) -> tuple[float, float, float]:
