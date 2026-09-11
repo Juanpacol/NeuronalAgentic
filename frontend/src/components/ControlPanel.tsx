@@ -13,6 +13,7 @@ import { Stepper } from './ui/Stepper'
 import { SegmentedControl, type OpcionSegmentada } from './ui/SegmentedControl'
 import { Button } from './ui/Button'
 import { ListRow } from './ui/ListRow'
+import { CalculadoraMetas } from './CalculadoraMetas'
 
 interface ControlPanelProps {
   params: ParametrosAG
@@ -56,6 +57,11 @@ export function ControlPanel({
 
   return (
     <div className="control-panel">
+      <CalculadoraMetas
+        disabled={deshabilitado}
+        onAplicar={(metas) => onChange({ ...params, ...metas })}
+      />
+
       <Card titulo="Metas nutricionales y presupuesto">
         <div className="control-panel-fila">
           <Slider
