@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 class ParametrosAG(BaseModel):
     poblacion: int = 60
     num_ciudades: int = 30
+    origen_ciudades: str = "aleatorio"  # "aleatorio" | "metro_medellin"
     prob_cruce: float = 0.85
     prob_mutacion: float = 0.15
     elitismo: int = 3

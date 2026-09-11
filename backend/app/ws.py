@@ -5,7 +5,12 @@ import asyncio
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from .ag.ciudades import calcular_matriz_distancias, generar_ciudades
+from .ag.ciudades import (
+    calcular_matriz_distancias,
+    generar_ciudades,
+    generar_mapa_metro_medellin,
+    nombres_metro_medellin,
+)
 from .ag.parametros import ParametrosAG
 from .runner import RunManager
 
@@ -33,15 +38,23 @@ async def ws_evolucion(websocket: WebSocket):
                 params_dict = mensaje.get("params") or {}
                 params = ParametrosAG(**params_dict)
 
-                ciudades = generar_ciudades(params.num_ciudades, params.semilla_ciudades)
+                nombres_ciudades = None
+                if params.origen_ciudades == "metro_medellin":
+                    ciudades = generar_mapa_metro_medellin()
+                    nombres_ciudades = nombres_metro_medellin()
+                else:
+                    ciudades = generar_ciudades(params.num_ciudades, params.semilla_ciudades)
                 matriz_distancias = calcular_matriz_distancias(ciudades)
 
                 run = run_manager.crear_run(params)
-                await websocket.send_json({
+                mensaje_iniciado = {
                     "tipo": "iniciado",
                     "run_id": run.run_id,
                     "ciudades": ciudades.tolist(),
-                })
+                }
+                if nombres_ciudades is not None:
+                    mensaje_iniciado["nombres_ciudades"] = nombres_ciudades
+                await websocket.send_json(mensaje_iniciado)
 
                 async def enviar(msg, ws=websocket):
                     await ws.send_json(msg)

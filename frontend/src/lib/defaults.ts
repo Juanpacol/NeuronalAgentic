@@ -8,6 +8,7 @@ import type { OpcionesParametros, ParametrosAG } from './tipos'
 export const PARAMETROS_DEFAULT: ParametrosAG = {
   poblacion: 60,
   num_ciudades: 30,
+  origen_ciudades: 'aleatorio',
   prob_cruce: 0.85,
   prob_mutacion: 0.15,
   elitismo: 3,

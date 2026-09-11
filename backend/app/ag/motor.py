@@ -57,7 +57,8 @@ async def evolucionar(
 
     rng = random.Random(params.seed)
 
-    poblacion = crear_poblacion(params.poblacion, params.num_ciudades, rng)
+    num_ciudades = matriz_distancias.shape[0]
+    poblacion = crear_poblacion(params.poblacion, num_ciudades, rng)
     f_seleccion = REGISTRO_SELECCION[params.seleccion]
     f_cruce = REGISTRO_CRUCE[params.cruce]
 

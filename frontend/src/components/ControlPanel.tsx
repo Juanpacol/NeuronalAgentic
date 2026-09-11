@@ -5,6 +5,7 @@ import type {
   EstadoConexion,
   Mutacion,
   OpcionesParametros,
+  OrigenCiudades,
   ParametrosAG,
   Seleccion,
 } from '../lib/tipos'
@@ -63,14 +64,42 @@ export function ControlPanel({
         </label>
 
         <label>
-          Número de ciudades
-          <input
-            type="number"
-            min={3}
-            value={params.num_ciudades}
-            onChange={(e) => actualizar('num_ciudades', numero(e))}
-          />
+          Mapa de ciudades
+          <select
+            value={params.origen_ciudades}
+            onChange={(e) => actualizar('origen_ciudades', e.target.value as OrigenCiudades)}
+          >
+            <option value="aleatorio">Aleatorio</option>
+            <option value="metro_medellin">Metro de Medellín (27 estaciones reales)</option>
+          </select>
         </label>
+
+        {params.origen_ciudades === 'aleatorio' && (
+          <>
+            <label>
+              Número de ciudades
+              <input
+                type="number"
+                min={3}
+                value={params.num_ciudades}
+                onChange={(e) => actualizar('num_ciudades', numero(e))}
+              />
+            </label>
+
+            <label>
+              Semilla de ciudades (opcional)
+              <input
+                type="number"
+                value={params.semilla_ciudades ?? ''}
+                placeholder="aleatoria"
+                onChange={(e) => {
+                  const v = e.target.value
+                  actualizar('semilla_ciudades', v === '' ? null : Number(v))
+                }}
+              />
+            </label>
+          </>
+        )}
 
         <label>
           Prob. de cruce ({params.prob_cruce.toFixed(2)})
@@ -231,19 +260,6 @@ export function ControlPanel({
             />
           </label>
         )}
-
-        <label>
-          Semilla de ciudades (opcional)
-          <input
-            type="number"
-            value={params.semilla_ciudades ?? ''}
-            placeholder="aleatoria"
-            onChange={(e) => {
-              const v = e.target.value
-              actualizar('semilla_ciudades', v === '' ? null : Number(v))
-            }}
-          />
-        </label>
 
         <label>
           Seed del AG (opcional)

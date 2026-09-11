@@ -4,6 +4,7 @@ export type Seleccion = 'proporcional' | 'torneo' | 'estocastica' | 'heuristica'
 export type Cruce = 'un_punto' | 'dos_puntos' | 'uniforme'
 export type Mutacion = 'heuristica' | 'intercambio' | 'desplazamiento' | 'insercion'
 export type CriterioParada = 'generaciones' | 'convergencia' | 'objetivo'
+export type OrigenCiudades = 'aleatorio' | 'metro_medellin'
 
 /** Una ciudad del mapa: coordenadas [x, y] normalizadas en [0,1]. */
 export type Ciudad = [number, number]
@@ -12,6 +13,7 @@ export type Ciudad = [number, number]
 export interface ParametrosAG {
   poblacion: number
   num_ciudades: number
+  origen_ciudades: OrigenCiudades
   prob_cruce: number
   prob_mutacion: number
   elitismo: number
@@ -51,7 +53,7 @@ export type MensajeCliente =
 
 /** Mensajes que el servidor envía al cliente. */
 export type MensajeServidor =
-  | { tipo: 'iniciado'; run_id: string | number; ciudades: Ciudad[] }
+  | { tipo: 'iniciado'; run_id: string | number; ciudades: Ciudad[]; nombres_ciudades?: string[] }
   | {
       tipo: 'generacion'
       generacion: number
