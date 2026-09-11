@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { ControlPanel } from './components/ControlPanel'
-import { RouteCanvas } from './components/RouteCanvas'
-import { exportarRutaComoPng } from './lib/canvas'
+import { DietaPanel } from './components/DietaPanel'
 import { FitnessChart } from './components/FitnessChart'
 import { StatsBar } from './components/StatsBar'
 import { ConnectionBanner } from './components/ConnectionBanner'
@@ -20,8 +19,19 @@ function App() {
   const [params, setParams] = useState<ParametrosAG>(OPCIONES_PARAMETROS_FALLBACK.defaults)
   const [inicioMs, setInicioMs] = useState<number | null>(null)
 
-  const { status, stats, historia, ciudadesRef, rutaRef, iniciar, pausar, reanudar, detener, mensajeError } =
-    useEvolutionSocket(WS_URL)
+  const {
+    status,
+    stats,
+    historia,
+    alimentosRef,
+    genomaRef,
+    objetivosRef,
+    iniciar,
+    pausar,
+    reanudar,
+    detener,
+    mensajeError,
+  } = useEvolutionSocket(WS_URL)
 
   // Al montar: precalienta el backend (puede estar dormido en Render) y carga opciones.
   useEffect(() => {
@@ -43,30 +53,18 @@ function App() {
     setInicioMs(null)
   }
 
-  function handleExportar() {
-    exportarRutaComoPng(ciudadesRef.current, rutaRef.current, `ruta-generacion-${stats?.generacion ?? 0}.png`)
-  }
-
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Laboratorio de Algoritmo Genético — TSP</h1>
-        <p>Evolución de una ruta hacia el recorrido más corto</p>
+        <h1>Laboratorio de Algoritmo Genético — Dieta</h1>
+        <p>Evolución de un plan de alimentación hacia la mejor meta nutricional al menor costo</p>
       </header>
 
       <ConnectionBanner status={status} mensajeError={mensajeError} onReintentar={handleIniciar} />
 
       <StatsBar status={status} stats={stats} inicioMs={inicioMs} />
 
-      <div className="canvases-row">
-        <div className="canvas-column">
-          <h2>Ruta</h2>
-          <RouteCanvas ciudadesRef={ciudadesRef} rutaRef={rutaRef} />
-          <button type="button" onClick={handleExportar}>
-            Exportar PNG
-          </button>
-        </div>
-      </div>
+      <DietaPanel alimentosRef={alimentosRef} genomaRef={genomaRef} objetivosRef={objetivosRef} />
 
       <FitnessChart historia={historia} />
 

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import type {
-  Ciudad,
+  Alimento,
   EstadisticasActuales,
   EstadoConexion,
   MensajeCliente,
   MensajeServidor,
+  ObjetivosDieta,
   ParametrosAG,
   PuntoHistoria,
 } from '../lib/tipos'
@@ -19,8 +20,9 @@ interface UseEvolutionSocketResult {
   status: EstadoConexion
   stats: EstadisticasActuales | null
   historia: PuntoHistoria[]
-  ciudadesRef: RefObject<Ciudad[]>
-  rutaRef: RefObject<number[] | null>
+  alimentosRef: RefObject<Alimento[]>
+  genomaRef: RefObject<number[] | null>
+  objetivosRef: RefObject<ObjetivosDieta | null>
   iniciar: (params: ParametrosAG) => void
   pausar: () => void
   reanudar: () => void
@@ -34,8 +36,9 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
   const [historia, setHistoria] = useState<PuntoHistoria[]>([])
   const [mensajeError, setMensajeError] = useState<string | null>(null)
 
-  const ciudadesRef = useRef<Ciudad[]>([])
-  const rutaRef = useRef<number[] | null>(null)
+  const alimentosRef = useRef<Alimento[]>([])
+  const genomaRef = useRef<number[] | null>(null)
+  const objetivosRef = useRef<ObjetivosDieta | null>(null)
   const socketRef = useRef<WebSocket | null>(null)
   const intentosRef = useRef(0)
   const corridaActivaRef = useRef(false)
@@ -155,23 +158,25 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
         switch (msg.tipo) {
           case 'iniciado': {
             corridaActivaRef.current = true
-            ciudadesRef.current = msg.ciudades
-            rutaRef.current = null
+            alimentosRef.current = msg.alimentos
+            objetivosRef.current = msg.objetivos
+            genomaRef.current = null
             setStatus('running')
             break
           }
           case 'generacion': {
-            if (msg.ruta_mejor) {
-              rutaRef.current = msg.ruta_mejor
+            if (msg.genoma_mejor) {
+              genomaRef.current = msg.genoma_mejor
             }
             const punto: EstadisticasActuales = {
               generacion: msg.generacion,
               mejor_aptitud: msg.mejor_aptitud,
               aptitud_promedio: msg.aptitud_promedio,
               aptitud_peor: msg.aptitud_peor,
-              distancia_mejor: msg.distancia_mejor,
-              distancia_promedio: msg.distancia_promedio,
-              distancia_peor: msg.distancia_peor,
+              costo_mejor: msg.costo_mejor,
+              pen_macro: msg.pen_macro,
+              pen_costo: msg.pen_costo,
+              macros_mejor: msg.macros_mejor,
               generaciones_sin_mejora: msg.generaciones_sin_mejora,
               tiempo_ms: msg.tiempo_ms,
             }
@@ -181,8 +186,9 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
               mejor_aptitud: msg.mejor_aptitud,
               aptitud_promedio: msg.aptitud_promedio,
               aptitud_peor: msg.aptitud_peor,
-              distancia_mejor: msg.distancia_mejor,
-              distancia_promedio: msg.distancia_promedio,
+              costo_mejor: msg.costo_mejor,
+              pen_macro: msg.pen_macro,
+              pen_costo: msg.pen_costo,
             })
             sucioRef.current = true
             break
@@ -239,7 +245,7 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
       ultimosParamsRef.current = { params }
       corridaActivaRef.current = true
       intentosRef.current = 0
-      rutaRef.current = null
+      genomaRef.current = null
       setHistoria([])
       setStats(null)
       historiaPendienteRef.current = []
@@ -292,5 +298,17 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
     }
   }, [cerrarSocket, limpiarTimers])
 
-  return { status, stats, historia, ciudadesRef, rutaRef, iniciar, pausar, reanudar, detener, mensajeError }
+  return {
+    status,
+    stats,
+    historia,
+    alimentosRef,
+    genomaRef,
+    objetivosRef,
+    iniciar,
+    pausar,
+    reanudar,
+    detener,
+    mensajeError,
+  }
 }

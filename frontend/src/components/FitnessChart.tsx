@@ -8,17 +8,17 @@ interface FitnessChartProps {
 }
 
 const OPCIONES_BASE: Omit<uPlot.Options, 'width' | 'height'> = {
-  title: 'Distancia de la ruta por generación',
+  title: 'Aptitud de la dieta por generación',
   scales: { x: { time: false } },
   series: [
     {},
-    { label: 'Mejor distancia', stroke: '#e74c3c', width: 2 },
-    { label: 'Distancia promedio', stroke: '#3498db', width: 2 },
+    { label: 'Mejor aptitud', stroke: '#2ecc71', width: 2 },
+    { label: 'Aptitud promedio', stroke: '#3498db', width: 2 },
   ],
-  axes: [{ label: 'Generación' }, { label: 'Distancia' }],
+  axes: [{ label: 'Generación' }, { label: 'Aptitud' }],
 }
 
-/** Gráfica de línea (uPlot) con mejor distancia y distancia promedio por generación. */
+/** Gráfica de línea (uPlot) con mejor aptitud y aptitud promedio por generación. */
 export function FitnessChart({ historia }: FitnessChartProps) {
   const contenedorRef = useRef<HTMLDivElement | null>(null)
   const plotRef = useRef<uPlot | null>(null)
@@ -53,8 +53,8 @@ export function FitnessChart({ historia }: FitnessChartProps) {
     const plot = plotRef.current
     if (!plot) return
     const xs = historia.map((p) => p.generacion)
-    const mejor = historia.map((p) => p.distancia_mejor)
-    const promedio = historia.map((p) => p.distancia_promedio)
+    const mejor = historia.map((p) => p.mejor_aptitud)
+    const promedio = historia.map((p) => p.aptitud_promedio)
     plot.setData([xs, mejor, promedio])
   }, [historia])
 

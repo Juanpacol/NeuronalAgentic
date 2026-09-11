@@ -5,7 +5,6 @@ import type {
   EstadoConexion,
   Mutacion,
   OpcionesParametros,
-  OrigenCiudades,
   ParametrosAG,
   Seleccion,
 } from '../lib/tipos'
@@ -51,6 +50,72 @@ export function ControlPanel({
   return (
     <div className="control-panel">
       <fieldset disabled={deshabilitado}>
+        <legend>Metas nutricionales y presupuesto</legend>
+
+        <label>
+          Calorías objetivo (kcal)
+          <input
+            type="number"
+            min={0}
+            value={params.objetivo_kcal}
+            onChange={(e) => actualizar('objetivo_kcal', numero(e))}
+          />
+        </label>
+
+        <label>
+          Proteína objetivo (g)
+          <input
+            type="number"
+            min={0}
+            value={params.objetivo_proteina_g}
+            onChange={(e) => actualizar('objetivo_proteina_g', numero(e))}
+          />
+        </label>
+
+        <label>
+          Carbohidratos objetivo (g)
+          <input
+            type="number"
+            min={0}
+            value={params.objetivo_carbohidratos_g}
+            onChange={(e) => actualizar('objetivo_carbohidratos_g', numero(e))}
+          />
+        </label>
+
+        <label>
+          Grasa objetivo (g)
+          <input
+            type="number"
+            min={0}
+            value={params.objetivo_grasa_g}
+            onChange={(e) => actualizar('objetivo_grasa_g', numero(e))}
+          />
+        </label>
+
+        <label>
+          Presupuesto diario (COP)
+          <input
+            type="number"
+            min={0}
+            value={params.presupuesto_cop}
+            onChange={(e) => actualizar('presupuesto_cop', numero(e))}
+          />
+        </label>
+
+        <label>
+          Peso del costo vs. nutrición ({params.peso_costo.toFixed(2)})
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={params.peso_costo}
+            onChange={(e) => actualizar('peso_costo', numero(e))}
+          />
+        </label>
+      </fieldset>
+
+      <fieldset disabled={deshabilitado}>
         <legend>Parámetros del algoritmo genético</legend>
 
         <label>
@@ -62,44 +127,6 @@ export function ControlPanel({
             onChange={(e) => actualizar('poblacion', numero(e))}
           />
         </label>
-
-        <label>
-          Mapa de ciudades
-          <select
-            value={params.origen_ciudades}
-            onChange={(e) => actualizar('origen_ciudades', e.target.value as OrigenCiudades)}
-          >
-            <option value="aleatorio">Aleatorio</option>
-            <option value="metro_medellin">Metro de Medellín (27 estaciones reales)</option>
-          </select>
-        </label>
-
-        {params.origen_ciudades === 'aleatorio' && (
-          <>
-            <label>
-              Número de ciudades
-              <input
-                type="number"
-                min={3}
-                value={params.num_ciudades}
-                onChange={(e) => actualizar('num_ciudades', numero(e))}
-              />
-            </label>
-
-            <label>
-              Semilla de ciudades (opcional)
-              <input
-                type="number"
-                value={params.semilla_ciudades ?? ''}
-                placeholder="aleatoria"
-                onChange={(e) => {
-                  const v = e.target.value
-                  actualizar('semilla_ciudades', v === '' ? null : Number(v))
-                }}
-              />
-            </label>
-          </>
-        )}
 
         <label>
           Prob. de cruce ({params.prob_cruce.toFixed(2)})
@@ -250,13 +277,14 @@ export function ControlPanel({
 
         {params.criterio_parada === 'objetivo' && (
           <label>
-            Distancia objetivo
+            Aptitud objetivo
             <input
               type="number"
               min={0}
-              step={0.1}
-              value={params.distancia_objetivo}
-              onChange={(e) => actualizar('distancia_objetivo', numero(e))}
+              max={1}
+              step={0.01}
+              value={params.aptitud_objetivo}
+              onChange={(e) => actualizar('aptitud_objetivo', numero(e))}
             />
           </label>
         )}

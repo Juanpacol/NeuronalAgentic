@@ -6,9 +6,7 @@ import type { OpcionesParametros, ParametrosAG } from './tipos'
  * Siempre se intenta primero el fetch real; esto es solo el respaldo.
  */
 export const PARAMETROS_DEFAULT: ParametrosAG = {
-  poblacion: 60,
-  num_ciudades: 30,
-  origen_ciudades: 'aleatorio',
+  poblacion: 80,
   prob_cruce: 0.85,
   prob_mutacion: 0.15,
   elitismo: 3,
@@ -21,9 +19,15 @@ export const PARAMETROS_DEFAULT: ParametrosAG = {
   max_generaciones: 400,
   epsilon: 0.0005,
   paciencia: 40,
-  distancia_objetivo: 5.0,
-  semilla_ciudades: null,
+  aptitud_objetivo: 0.95,
+  objetivo_kcal: 2000,
+  objetivo_proteina_g: 75,
+  objetivo_carbohidratos_g: 250,
+  objetivo_grasa_g: 65,
+  peso_costo: 0.5,
+  presupuesto_cop: 20000,
   seed: null,
+  retardo_ms: 0,
 }
 
 export const OPCIONES_PARAMETROS_FALLBACK: OpcionesParametros = {

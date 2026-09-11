@@ -105,35 +105,38 @@
   background: #555;
 }
 
-.canvases-row {
-  display: flex;
-  justify-content: center;
+.dieta-panel {
   margin-bottom: 16px;
+  overflow-x: auto;
 }
 
-.canvas-column {
+.dieta-panel-vacio {
+  padding: 24px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.dieta-tabla {
   width: 100%;
-  max-width: 700px;
-  min-width: 0;
+  border-collapse: collapse;
+  font-size: 0.9rem;
 }
 
-.canvas-column h2 {
-  font-size: 1rem;
-  margin: 0 0 8px;
+.dieta-tabla th,
+.dieta-tabla td {
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.25);
 }
 
-.canvas-box {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: #000;
-  border-radius: 8px;
-  overflow: hidden;
+.dieta-tabla th:first-child,
+.dieta-tabla td:first-child {
+  text-align: left;
 }
 
-.genome-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
+.dieta-costo-total {
+  margin-top: 8px;
+  font-weight: 600;
 }
 
 .fitness-chart {

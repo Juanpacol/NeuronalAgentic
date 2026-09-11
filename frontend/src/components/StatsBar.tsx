@@ -25,7 +25,7 @@ function formatearTiempo(ms: number): string {
   return `${min}:${seg.toString().padStart(2, '0')}`
 }
 
-/** Contador de generación, tiempo transcurrido, mejor/promedio de aptitud y badge de estado. */
+/** Contador de generación, tiempo transcurrido, aptitud y penalizaciones de la mejor dieta. */
 export function StatsBar({ status, stats, inicioMs }: StatsBarProps) {
   const [ahora, setAhora] = useState(() => Date.now())
 
@@ -42,8 +42,10 @@ export function StatsBar({ status, stats, inicioMs }: StatsBarProps) {
       <span className={`badge badge-${status}`}>{ETIQUETAS_ESTADO[status]}</span>
       <span>Generación: {stats?.generacion ?? '—'}</span>
       <span>Tiempo: {formatearTiempo(transcurridoMs)}</span>
-      <span>Mejor distancia: {stats ? stats.distancia_mejor.toFixed(3) : '—'}</span>
-      <span>Distancia promedio: {stats ? stats.distancia_promedio.toFixed(3) : '—'}</span>
+      <span>Mejor aptitud: {stats ? stats.mejor_aptitud.toFixed(4) : '—'}</span>
+      <span>Aptitud promedio: {stats ? stats.aptitud_promedio.toFixed(4) : '—'}</span>
+      <span>Desviación de macros: {stats ? stats.pen_macro.toFixed(3) : '—'}</span>
+      <span>Desviación de costo: {stats ? stats.pen_costo.toFixed(3) : '—'}</span>
       <span>Sin mejora: {stats?.generaciones_sin_mejora ?? '—'}</span>
     </div>
   )

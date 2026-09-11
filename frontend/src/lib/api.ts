@@ -18,7 +18,7 @@ interface OpcionesBackendCrudo {
   seleccion: OpcionesParametros['opciones']['seleccion']
   cruce: OpcionesParametros['opciones']['cruce']
   mutacion: OpcionesParametros['opciones']['mutacion']
-  defaults: ParametrosAG & { seed: number | null; semilla_ciudades: number | null }
+  defaults: ParametrosAG
 }
 
 function adaptarOpciones(crudo: OpcionesBackendCrudo): OpcionesParametros {
@@ -32,7 +32,6 @@ function adaptarOpciones(crudo: OpcionesBackendCrudo): OpcionesParametros {
     defaults: {
       ...crudo.defaults,
       seed: crudo.defaults.seed ?? null,
-      semilla_ciudades: crudo.defaults.semilla_ciudades ?? null,
     },
   }
 }
