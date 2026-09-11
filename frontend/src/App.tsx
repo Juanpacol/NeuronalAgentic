@@ -14,11 +14,17 @@ import type { OpcionesParametros, ParametrosAG } from './lib/tipos'
 /**
  * App.tsx es el dueño único del estado de `params` (useState, sin Redux/Zustand/Context:
  * innecesario a esta escala). Orquesta el hook de WebSocket y organiza el layout.
+ *
+ * Los ajustes (ControlPanel) viven en un sidebar aparte de los resultados
+ * (StatsBar/DietaPanel/FitnessChart): antes de calcular, el usuario solo ve
+ * ajustes; al presionar Iniciar el sidebar se cierra solo y deja ver los
+ * resultados, sin las dos secciones compitiendo por espacio a la vez.
  */
 function App() {
   const [opciones, setOpciones] = useState<OpcionesParametros>(OPCIONES_PARAMETROS_FALLBACK)
   const [params, setParams] = useState<ParametrosAG>(OPCIONES_PARAMETROS_FALLBACK.defaults)
   const [inicioMs, setInicioMs] = useState<number | null>(null)
+  const [ajustesAbiertos, setAjustesAbiertos] = useState(true)
 
   const {
     status,
@@ -47,6 +53,7 @@ function App() {
   function handleIniciar() {
     setInicioMs(Date.now())
     iniciar(params)
+    setAjustesAbiertos(false)
   }
 
   function handleDetener() {
@@ -63,6 +70,10 @@ function App() {
         <p>Evolución de un plan de alimentación hacia la mejor meta nutricional al menor costo</p>
       </header>
 
+      <button type="button" className="boton boton-tinted ajustes-boton" onClick={() => setAjustesAbiertos(true)}>
+        Ajustar metas y parámetros
+      </button>
+
       <ConnectionBanner status={status} mensajeError={mensajeError} onReintentar={handleIniciar} />
 
       <StatsBar status={status} stats={stats} inicioMs={inicioMs} maxGeneraciones={params.max_generaciones} />
@@ -71,16 +82,34 @@ function App() {
 
       <FitnessChart historia={historia} />
 
-      <ControlPanel
-        params={params}
-        onChange={setParams}
-        opciones={opciones.opciones}
-        status={status}
-        onIniciar={handleIniciar}
-        onPausar={pausar}
-        onReanudar={reanudar}
-        onDetener={handleDetener}
-      />
+      {ajustesAbiertos && (
+        <div className="sidebar-backdrop" onClick={() => setAjustesAbiertos(false)} />
+      )}
+      <aside className={`sidebar${ajustesAbiertos ? ' sidebar-abierto' : ''}`} aria-hidden={!ajustesAbiertos}>
+        <div className="sidebar-cabecera">
+          <h2>Ajustes de la dieta</h2>
+          <button
+            type="button"
+            className="sidebar-cerrar"
+            onClick={() => setAjustesAbiertos(false)}
+            aria-label="Cerrar ajustes"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="sidebar-cuerpo">
+          <ControlPanel
+            params={params}
+            onChange={setParams}
+            opciones={opciones.opciones}
+            status={status}
+            onIniciar={handleIniciar}
+            onPausar={pausar}
+            onReanudar={reanudar}
+            onDetener={handleDetener}
+          />
+        </div>
+      </aside>
     </div>
   )
 }
