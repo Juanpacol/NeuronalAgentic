@@ -4,6 +4,7 @@ import { colorCategoria } from '../lib/categorias'
 import { Card } from './ui/Card'
 import { ChromosomeStrip } from './viz/ChromosomeStrip'
 import { ActivityRings, type AnilloMacro } from './viz/ActivityRings'
+import { CheshireGrin } from './viz/CheshireGrin'
 
 interface DietaPanelProps {
   alimentosRef: RefObject<Alimento[]>
@@ -46,7 +47,7 @@ export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanel
   if (!genoma || alimentos.length === 0) {
     return (
       <Card titulo="Dieta">
-        <p className="dieta-panel-vacio">Aún no hay una dieta generada. Presiona Iniciar.</p>
+        <CheshireGrin etiqueta="El gato desapareció: presioná Iniciar y va a dejar tu dieta, como la sonrisa." />
       </Card>
     )
   }

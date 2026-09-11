@@ -164,6 +164,72 @@
   );
 }
 
+/* ---------- CheshireGrin ---------- */
+
+.cheshire-grin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4) 0;
+}
+
+.cheshire-grin-svg {
+  width: 140px;
+  height: auto;
+}
+
+.cheshire-grin-ojo {
+  fill: var(--cheshire-pink);
+  animation: cheshire-parpadeo 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.cheshire-grin-pupila {
+  fill: var(--bg);
+}
+
+.cheshire-grin-sonrisa {
+  stroke: var(--cheshire-gold);
+  stroke-width: 5;
+  animation: cheshire-brillo 2.4s ease-in-out infinite;
+}
+
+.cheshire-grin-diente {
+  fill: var(--cheshire-gold);
+}
+
+.cheshire-grin-etiqueta {
+  margin: 0;
+  font-size: var(--fs-footnote);
+  color: var(--label-2);
+}
+
+@keyframes cheshire-parpadeo {
+  0%, 92%, 100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes cheshire-brillo {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px color-mix(in srgb, var(--cheshire-gold) 60%, transparent));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--cheshire-gold) 80%, transparent));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cheshire-grin-ojo,
+  .cheshire-grin-sonrisa {
+    animation: none;
+  }
+}
+
 /* ---------- GenerationCounter ---------- */
 
 .viz-generacion {

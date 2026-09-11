@@ -15,6 +15,11 @@
   --ios-orange: #ff9f0a;
   --ios-indigo: #5e5ce6;
 
+  /* Acentos "Cheshire": solo para la sonrisa/ojos del gato (CheshireGrin) y
+     detalles puntuales de esa marca. No reemplazan la paleta iOS de arriba. */
+  --cheshire-gold: #f6d383;
+  --cheshire-pink: #d57ace;
+
   /* Rampa de grises: g1 es el más oscuro, g6 el más claro */
   --ios-g1: #8e8e93;
   --ios-g2: #636366;

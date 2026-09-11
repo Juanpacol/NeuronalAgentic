@@ -159,12 +159,6 @@
   gap: var(--sp-4);
 }
 
-.dieta-panel-vacio {
-  padding: var(--sp-7) var(--sp-4);
-  text-align: center;
-  color: var(--label-2);
-}
-
 .dieta-tabla-wrap {
   overflow-x: auto;
 }

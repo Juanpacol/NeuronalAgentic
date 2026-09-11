@@ -1,4 +1,5 @@
 import type { EstadoConexion } from '../lib/tipos'
+import { CheshireGrin } from './viz/CheshireGrin'
 
 interface ConnectionBannerProps {
   status: EstadoConexion
@@ -11,7 +12,7 @@ export function ConnectionBanner({ status, mensajeError, onReintentar }: Connect
   if (status === 'waking') {
     return (
       <div className="connection-banner banner-info">
-        <p>Despertando el servidor gratuito de Render, puede tardar hasta 50 segundos…</p>
+        <CheshireGrin etiqueta="Despertando al gato… el servidor gratuito de Render puede tardar hasta 50 segundos" />
         <div className="progress-indeterminate">
           <div className="progress-indeterminate-bar" />
         </div>

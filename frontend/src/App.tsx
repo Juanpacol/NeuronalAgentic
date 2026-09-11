@@ -65,9 +65,9 @@ function App() {
     <div className="app">
       <header className="app-header">
         <TextAnimate as="h1" animation="blurInUp" by="word">
-          Laboratorio de Algoritmo Genético — Dieta
+          The Cheshire Diet
         </TextAnimate>
-        <p>Evolución de un plan de alimentación hacia la mejor meta nutricional al menor costo</p>
+        <p>Laboratorio de Algoritmo Genético — un plan de alimentación que evoluciona hacia la mejor meta nutricional al menor costo</p>
       </header>
 
       <button type="button" className="boton boton-tinted ajustes-boton" onClick={() => setAjustesAbiertos(true)}>
