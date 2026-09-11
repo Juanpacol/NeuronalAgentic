@@ -16,7 +16,7 @@ export const PARAMETROS_DEFAULT: ParametrosAG = {
   cruce: 'dos_puntos',
   mutacion: 'heuristica',
   criterio_parada: 'generaciones',
-  max_generaciones: 400,
+  max_generaciones: 80,
   epsilon: 0.0005,
   paciencia: 40,
   aptitud_objetivo: 0.95,

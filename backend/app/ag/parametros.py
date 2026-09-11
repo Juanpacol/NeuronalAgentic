@@ -18,7 +18,10 @@ class ParametrosAG(BaseModel):
 
     # --- criterios de parada ---
     criterio_parada: str = "generaciones"
-    max_generaciones: int = 400
+    # 80: converge ~gen 40 con los defaults (ver scripts/demo_local.py); dejarlo
+    # muy por encima de la convergencia real solo agrega una cola plana al
+    # final de la gráfica de aptitud, sin más búsqueda útil.
+    max_generaciones: int = 80
     epsilon: float = 0.0005
     paciencia: int = 40
     aptitud_objetivo: float = 0.95
