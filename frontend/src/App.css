@@ -13,10 +13,26 @@
 }
 
 .app-header h1 {
-  margin: 0 0 var(--sp-1);
+  margin: 0;
   font-size: var(--fs-large-title);
   font-weight: var(--fw-large-title);
   letter-spacing: var(--ls-large-title);
+}
+
+.app-header-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-1);
+}
+
+.app-titulo-cheshire .ui-textanimate-segment {
+  background-image: linear-gradient(90deg, var(--cheshire-gold), var(--cheshire-pink));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 .app-header p {
@@ -192,6 +208,10 @@
   height: 9px;
   border-radius: var(--r-full);
   flex: none;
+}
+
+.dieta-descarga {
+  margin-top: var(--sp-3);
 }
 
 .dieta-tabla-wrap {

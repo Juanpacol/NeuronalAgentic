@@ -5,6 +5,8 @@ import { ActivityRings, type AnilloMacro } from './viz/ActivityRings'
 import { PrioridadAlimentos, type FilaPrioridad } from './viz/PrioridadAlimentos'
 import { CheshireGrin } from './viz/CheshireGrin'
 import { colorCategoria, CATEGORIA_ETIQUETA } from '../lib/categorias'
+import { descargarCsv } from '../lib/exportar'
+import { Button } from './ui/Button'
 
 interface DietaPanelProps {
   alimentosRef: RefObject<Alimento[]>
@@ -104,6 +106,24 @@ export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanel
 
   const categoriasPresentes = [...new Set(elegidos.map((f) => f.alimento.categoria))]
 
+  function handleDescargarCsv() {
+    descargarCsv(
+      'the-cheshire-diet.csv',
+      ['Alimento', 'Categoría', 'Porciones', 'Unidad', 'kcal', 'Proteína (g)', 'Carbohidratos (g)', 'Grasa (g)', 'Costo (COP)'],
+      elegidos.map((f) => [
+        f.alimento.nombre,
+        CATEGORIA_ETIQUETA[f.alimento.categoria] ?? f.alimento.categoria,
+        f.porciones,
+        f.alimento.unidad,
+        (f.alimento.kcal * f.porciones).toFixed(0),
+        (f.alimento.proteina_g * f.porciones).toFixed(1),
+        (f.alimento.carbohidratos_g * f.porciones).toFixed(1),
+        (f.alimento.grasa_g * f.porciones).toFixed(1),
+        (f.alimento.precio_cop * f.porciones).toFixed(0),
+      ]),
+    )
+  }
+
   return (
     <div className="dieta-panel">
       <Card
@@ -169,6 +189,11 @@ export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanel
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="dieta-descarga">
+          <Button variant="tinted" tono="rosa" onClick={handleDescargarCsv}>
+            Descargar dieta (CSV)
+          </Button>
         </div>
       </Card>
     </div>

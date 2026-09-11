@@ -1,18 +1,30 @@
 interface CheshireGrinProps {
   /** Texto opcional debajo de la sonrisa (p. ej. "Despertando al gato…"). */
   etiqueta?: string
+  /** Ancho del SVG. Por defecto 140px (uso en cards); pasar uno chico para uso inline (p. ej. junto al título). */
+  tamano?: number
+  className?: string
 }
 
 /**
- * Guiño a "The Cheshire Diet": solo ojos y sonrisa (el gato ya "desapareció"),
- * como estado de espera/vacío. A propósito NO es el reskin completo de
- * Wonderland que se evaluó — mismo fondo negro y tokens iOS de siempre, con
- * dos acentos puntuales (--cheshire-gold/--cheshire-pink) solo acá.
+ * Guiño a "The Cheshire Diet": solo ojos y sonrisa. A propósito NO es el
+ * reskin completo de Wonderland que se evaluó — mismo fondo negro y tokens
+ * iOS de siempre, con dos acentos puntuales (--cheshire-gold/--cheshire-pink)
+ * solo acá.
  */
-export function CheshireGrin({ etiqueta }: CheshireGrinProps) {
+export function CheshireGrin({ etiqueta, tamano = 140, className }: CheshireGrinProps) {
   return (
-    <div className="cheshire-grin" role="img" aria-label={etiqueta ?? 'El gato de Cheshire'}>
-      <svg viewBox="0 0 200 120" className="cheshire-grin-svg" aria-hidden="true">
+    <div
+      className={className ? `cheshire-grin ${className}` : 'cheshire-grin'}
+      role="img"
+      aria-label={etiqueta ?? 'El gato de Cheshire'}
+    >
+      <svg
+        viewBox="0 0 200 120"
+        className="cheshire-grin-svg"
+        style={{ width: tamano }}
+        aria-hidden="true"
+      >
         <ellipse cx="70" cy="40" rx="11" ry="14" className="cheshire-grin-ojo" />
         <ellipse cx="130" cy="40" rx="11" ry="14" className="cheshire-grin-ojo" />
         <circle cx="70" cy="40" r="4.5" className="cheshire-grin-pupila" />

@@ -225,6 +225,12 @@
   padding: var(--sp-4) 0;
 }
 
+/* Uso inline junto al título: sin padding, sin columna. */
+.cheshire-grin-inline {
+  flex-direction: row;
+  padding: 0;
+}
+
 .cheshire-grin-svg {
   width: 140px;
   height: auto;

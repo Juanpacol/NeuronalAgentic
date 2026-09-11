@@ -3,6 +3,8 @@ import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 import type { PuntoHistoria } from '../lib/tipos'
 import { Card } from './ui/Card'
+import { Button } from './ui/Button'
+import { descargarCanvasComoPng } from '../lib/exportar'
 
 interface FitnessChartProps {
   historia: PuntoHistoria[]
@@ -104,6 +106,11 @@ export function FitnessChart({ historia, activo }: FitnessChartProps) {
     plot.setData([xs, mejor, promedio])
   }, [historia])
 
+  function handleDescargar() {
+    const canvas = plotRef.current?.ctx.canvas
+    if (canvas) descargarCanvasComoPng(canvas, 'the-cheshire-diet-aptitud.png')
+  }
+
   return (
     <Card
       titulo="Evolución de la aptitud"
@@ -112,6 +119,11 @@ export function FitnessChart({ historia, activo }: FitnessChartProps) {
       className={activo ? 'fitness-chart-card fitness-chart-viva' : 'fitness-chart-card'}
     >
       <div ref={contenedorRef} className="fitness-chart" />
+      <div className="dieta-descarga">
+        <Button variant="tinted" tono="rosa" onClick={handleDescargar} disabled={historia.length === 0}>
+          Descargar gráfica (PNG)
+        </Button>
+      </div>
     </Card>
   )
 }

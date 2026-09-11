@@ -7,6 +7,7 @@ import { StatsBar } from './components/StatsBar'
 import { ConnectionBanner } from './components/ConnectionBanner'
 import { Documentacion } from './components/Documentacion'
 import { TextAnimate } from './components/ui/text-animate'
+import { CheshireGrin } from './components/viz/CheshireGrin'
 import { useEvolutionSocket } from './hooks/useEvolutionSocket'
 import { obtenerOpcionesParametros, precalentarBackend, WS_URL } from './lib/api'
 import { OPCIONES_PARAMETROS_FALLBACK } from './lib/defaults'
@@ -66,9 +67,12 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <TextAnimate as="h1" animation="blurInUp" by="word">
-          The Cheshire Diet
-        </TextAnimate>
+        <div className="app-header-titulo">
+          <CheshireGrin tamano={56} className="cheshire-grin-inline" />
+          <TextAnimate as="h1" animation="blurInUp" by="word" className="app-titulo-cheshire">
+            The Cheshire Diet
+          </TextAnimate>
+        </div>
         <p>Laboratorio de Algoritmo Genético — un plan de alimentación que evoluciona hacia la mejor meta nutricional al menor costo</p>
       </header>
 
