@@ -229,10 +229,98 @@
   color: var(--label);
 }
 
-/* ---------- Botón para reabrir el sidebar de ajustes ---------- */
+/* ---------- Acciones superiores (ajustes / documentación) ---------- */
 
-.ajustes-boton {
-  align-self: center;
+.acciones-superiores {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+/* ---------- Modal de documentación ---------- */
+
+.doc-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  animation: sidebar-fade 0.2s var(--ease-ios);
+}
+
+.doc-modal {
+  background: var(--bg-2);
+  border-radius: var(--r-lg);
+  width: min(720px, 100%);
+  max-height: min(85vh, 900px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.doc-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-4);
+  border-bottom: 1px solid var(--separator);
+  flex: none;
+}
+
+.doc-cabecera h2 {
+  margin: 0;
+  font-size: var(--fs-title2);
+  font-weight: var(--fw-title2);
+}
+
+.doc-cuerpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.doc-intro {
+  margin: 0;
+  color: var(--label-2);
+  font-size: var(--fs-subheadline);
+}
+
+.doc-cuerpo .ui-card p {
+  margin: 0;
+  font-size: var(--fs-subheadline);
+  line-height: 1.6;
+}
+
+.doc-cuerpo .ui-card p + p {
+  margin-top: var(--sp-2);
+}
+
+.doc-cuerpo code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  background: var(--bg-3);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.doc-lista {
+  margin: var(--sp-2) 0 0;
+  padding-left: 1.2em;
+  font-size: var(--fs-subheadline);
+  line-height: 1.6;
+}
+
+.doc-lista li + li {
+  margin-top: var(--sp-1);
 }
 
 /* ---------- Sidebar de ajustes ---------- */

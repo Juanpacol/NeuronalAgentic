@@ -1,83 +1,79 @@
-# Informe — Laboratorio de Algoritmos Genéticos (TSP)
+# Informe — Laboratorio de Algoritmos Genéticos (Dieta)
 
-## De la aproximación de imágenes a TSP: por qué se cambió
+> Nota: este proyecto pivoteó de TSP (vendedor viajero) a optimización de dieta. La versión
+> anterior de este informe describía TSP; se reemplaza por completo acá. La misma explicación,
+> en lenguaje simple, también vive dentro de la app (botón "Cómo funciona").
 
-La primera versión del proyecto evolucionaba triángulos de color semitransparentes para
-aproximar una fotografía. Se abandonó por dos razones, confirmadas contra implementaciones
-reales de referencia (EvoLisa/genetic-lisa de Roger Johansson, image-approx, polygen):
+## Qué optimiza
 
-1. **Escala de convergencia incompatible con un curso**: esos proyectos necesitan entre 50.000
-   y 680.000+ generaciones para una foto reconocible (documentado en sus propios README). Con
-   un AG poblacional real (no hill-climbing) y recursos de CPU compartida (Render free tier),
-   eso es inviable para una demo en clase.
-2. **La mayoría no son AG poblacionales**: son hill-climbing (un individuo, mutar una copia,
-   quedarse con la que mejora). Eso no permite comparar selección/cruce/mutación como pide la
-   asignatura — adoptar ese enfoque habría sido más rápido pero pedagógicamente vacío.
-
-TSP (problema del vendedor viajero) resuelve ambos problemas: el fitness es una suma de
-distancias (microsegundos, no un rasterizado de imagen), converge en cientos de generaciones, y
-mantiene un AG poblacional genuino con cruce real entre individuos.
+Una población de dietas candidatas evoluciona generación tras generación hacia la mejor
+combinación de alimentos que cumpla metas nutricionales (kcal, proteína, carbohidratos, grasa)
+al menor costo posible, dado un catálogo real de 25 alimentos con datos de la Tabla de
+Composición de Alimentos Colombianos (TCAC, ICBF/UNAL 2018).
 
 ## Mapeo de componentes del curso al código
 
 | Componente (diapositivas) | Archivo | Descripción |
 |---|---|---|
-| C1 — Población | `backend/app/ag/poblacion.py` | Creación de la población inicial (permutaciones aleatorias) y estadísticas |
-| C2 — Mecanismo de representación | `backend/app/ag/representacion.py` | Cromosoma = permutación de `[0, num_ciudades)` |
-| C3 — Función objetivo | `backend/app/ag/fitness.py`, `ciudades.py` | Distancia total de la ruta (ciclo cerrado); aptitud = 1/(1+distancia) |
-| C4 — Operadores genéticos (selección) | `backend/app/ag/seleccion.py` | Proporcional, torneo, estocástica (SUS), heurística |
-| C4 — Operadores genéticos (cruce) | `backend/app/ag/cruce.py` | Un punto, dos puntos, uniforme — todas variantes de Order Crossover (OX) |
-| C4 — Operadores genéticos (mutación) | `backend/app/ag/mutacion.py` | Heurística (2-opt simplificado), intercambio, desplazamiento, inserción |
-| C5 — Parámetros iniciales | `backend/app/ag/parametros.py` | Tamaño de población, probabilidades, elitismo, criterio de parada |
+| C1 — Población | `backend/app/ag/poblacion.py` | Creación de la población inicial y estadísticas (mejor/promedio/peor aptitud) por generación |
+| C2 — Representación | `backend/app/ag/representacion.py` | Cromosoma = vector de enteros; `genoma[i]` = porciones diarias del alimento `i` (0 = no incluido). Cota por gen (`max_porciones[i]`), no global |
+| C3 — Función objetivo | `backend/app/ag/fitness.py`, catálogo en `alimentos.py` | `aptitud = 1/(1+penalización)`; penalización = desviación ponderada de metas nutricionales + penalización de costo (proporcional + recargo si excede presupuesto) |
+| C4 — Selección | `backend/app/ag/seleccion.py` | Proporcional (ruleta), torneo, estocástica (SUS), heurística (truncamiento) |
+| C4 — Cruce | `backend/app/ag/cruce.py` | Un punto, dos puntos, uniforme — tal como se enseñan, sin adaptación (ver más abajo) |
+| C4 — Mutación | `backend/app/ag/mutacion.py` | Heurística (perturbación gaussiana), intercambio (dentro de categoría), desplazamiento, inserción |
+| C5 — Parámetros / parada | `backend/app/ag/parametros.py`, `parada.py` | Población, probabilidades, elitismo, semilla; criterios: máx. generaciones, convergencia (paciencia), objetivo de aptitud |
 
-## Por qué el cruce no puede ser "de un punto" literal en TSP
+## Por qué el cruce NO necesita reparación acá (a diferencia de TSP)
 
-Un cromosoma de permutación no admite el cruce de un punto/dos puntos/uniforme tal como se
-enseña para cromosomas binarios o reales: cortar y pegar segmentos de dos padres casi siempre
-produce un hijo con ciudades repetidas y otras ausentes (no es una permutación válida).
+En TSP el cromosoma era una permutación de ciudades: cortar y pegar segmentos de dos padres casi
+siempre producía una ruta inválida (ciudades repetidas o faltantes), por lo que hacía falta Order
+Crossover (OX) con reparación para garantizar una permutación válida.
 
-La adaptación estándar de la literatura es **Order Crossover (OX)**: se conserva un segmento de
-un padre tal cual, y el resto de las ciudades se completa en el orden en que aparecen en el
-otro padre, saltando las que ya están. Esto garantiza que el hijo sea siempre una permutación
-válida. Se mantienen los tres nombres que pide el curso porque son variantes reales de OX:
+En el dominio de dieta cada gen es una cantidad independiente, ya acotada individualmente
+(`[0, max_porciones[i]]`). Cualquier combinación posicional de genes de dos padres válidos
+también respeta esas cotas, porque cada gen conserva su posición y, con ella, su cota. Por eso
+`un_punto`, `dos_puntos` y `uniforme` son los operadores de manual sin ninguna adaptación —
+una simplificación real frente al proyecto anterior, no una casualidad.
 
-- **un_punto**: un solo punto de corte; se conserva `p1[:c]` y se completa con el orden de `p2`.
-- **dos_puntos**: OX clásico de dos puntos de corte (el segmento intermedio se conserva).
-- **uniforme**: Uniform Order Crossover (UOX) — una máscara aleatoria decide qué posiciones se
-  heredan directamente de un padre; el resto se completa en el orden del otro padre.
+## Honestidad sobre los 4 operadores de mutación
 
-## Por qué los operadores de mutación aquí sí son literales (a diferencia de la versión de imagen)
+Solo 2 de los 4 operadores que pide el curso tienen sentido pleno sobre un vector de cantidades:
 
-En la versión anterior (triángulos), intercambio/desplazamiento/inserción eran operadores de
-permutación aplicados por necesidad sobre un cromosoma que no era una permutación real (una
-lista de triángulos con genes de color/posición), así que solo tenía sentido reinterpretarlos
-como "reordenar el orden de pintado" — con efecto nulo en píxeles cuando las figuras no se
-solapaban.
+- **Heurística** — sentido pleno: perturbación gaussiana por gen, proporcional a la cota de ese
+  alimento. Es la mutación natural de este dominio.
+- **Intercambio** — sentido dentro de categoría: intercambiar arroz por arepa (ambos
+  carbohidratos) es sustituir un básico por otro comparable; intercambiar arroz por pollo no
+  tiene sentido nutricional, así que el operador se restringe a alimentos de la misma categoría.
+- **Desplazamiento** e **inserción** — operadores de permutación: presuponen que la posición del
+  gen significa algo. Acá la posición es solo el orden del alimento en el catálogo, sin
+  contenido real, así que el movimiento es casi arbitrario. Se incluyen por completitud frente
+  al requisito de la asignatura, y se espera que rindan peor — eso es un resultado del
+  experimento a documentar, no un defecto de la implementación.
 
-En TSP el cromosoma **es** una permutación, así que estos operadores aplican tal como se
-enseñan, sin adaptación forzada:
+## Por qué dieta y no aproximación de imágenes (el proyecto original)
 
-- **Intercambio (swap)**: intercambia dos ciudades de posición en la ruta.
-- **Desplazamiento**: toma un segmento contiguo de ciudades y lo mueve a otra posición de la ruta.
-- **Inserción**: extrae una ciudad y la reinserta en otra posición.
-- **Heurística**: en vez de una mutación puramente aleatoria, prueba varios intercambios
-  candidatos y se queda con el que más reduce la distancia total (una forma simplificada de
-  búsqueda local tipo 2-opt), aprovechando información del problema — de ahí el nombre
-  "heurística".
+La primera versión evolucionaba triángulos de color para aproximar una fotografía. Se abandonó
+tras confirmar contra implementaciones reales de referencia (EvoLisa/genetic-lisa, image-approx,
+polygen) que ese enfoque necesita decenas o cientos de miles de generaciones para un resultado
+reconocible, y que la mayoría de esas implementaciones son hill-climbing (mutar una copia,
+quedarse con la mejor) y no un AG poblacional con cruce real — lo que no permite comparar
+selección/cruce/mutación como pide la asignatura. Dieta resuelve esto: el fitness se calcula en
+microsegundos, converge en decenas de generaciones, y los 4 operadores de mutación tienen una
+interpretación real sobre esta representación.
 
 ## Rendimiento medido
 
-Con población 60, 30 ciudades: la distancia baja de ~12.8 a ~4.8 (mejora de ~62%) en 400
-generaciones, con convergencia visible desde la generación ~80 y **menos de 1 segundo** de
-tiempo total en CPU local. Esto es órdenes de magnitud más rápido que el enfoque de imagen
-(39 segundos para 800 generaciones con resultados visualmente pobres), y viable en el CPU
-compartida del plan gratuito de Render sin comprometer la experiencia de la demo en clase.
+Con los parámetros por defecto (población 80, torneo k=3, cruce de dos puntos, mutación
+heurística): converge a aptitud ~0.88 alrededor de la generación 40 (ver
+`backend/scripts/demo_local.py`), con desviación de macros por debajo de 1% y costo bien por
+debajo del presupuesto. Por eso el default de `max_generaciones` es 80, no varios cientos: correr
+mucho más allá de la convergencia solo agrega generaciones planas sin más búsqueda útil.
 
 ## Comparación de técnicas
 
 (completar tras correr el laboratorio con semilla fija y registrar generación de convergencia
 por cada combinación de selección/cruce/mutación)
 
-| Selección | Cruce | Mutación | Generación de convergencia | Distancia final |
+| Selección | Cruce | Mutación | Generación de convergencia | Aptitud final |
 |---|---|---|---|---|
 | | | | | |

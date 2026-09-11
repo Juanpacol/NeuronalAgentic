@@ -5,6 +5,7 @@ import { DietaPanel } from './components/DietaPanel'
 import { FitnessChart } from './components/FitnessChart'
 import { StatsBar } from './components/StatsBar'
 import { ConnectionBanner } from './components/ConnectionBanner'
+import { Documentacion } from './components/Documentacion'
 import { TextAnimate } from './components/ui/text-animate'
 import { useEvolutionSocket } from './hooks/useEvolutionSocket'
 import { obtenerOpcionesParametros, precalentarBackend, WS_URL } from './lib/api'
@@ -25,6 +26,7 @@ function App() {
   const [params, setParams] = useState<ParametrosAG>(OPCIONES_PARAMETROS_FALLBACK.defaults)
   const [inicioMs, setInicioMs] = useState<number | null>(null)
   const [ajustesAbiertos, setAjustesAbiertos] = useState(true)
+  const [docAbierta, setDocAbierta] = useState(false)
 
   const {
     status,
@@ -70,9 +72,16 @@ function App() {
         <p>Laboratorio de Algoritmo Genético — un plan de alimentación que evoluciona hacia la mejor meta nutricional al menor costo</p>
       </header>
 
-      <button type="button" className="boton boton-tinted ajustes-boton" onClick={() => setAjustesAbiertos(true)}>
-        Ajustar metas y parámetros
-      </button>
+      <div className="acciones-superiores">
+        <button type="button" className="boton boton-tinted ajustes-boton" onClick={() => setAjustesAbiertos(true)}>
+          Ajustar metas y parámetros
+        </button>
+        <button type="button" className="boton boton-plain" onClick={() => setDocAbierta(true)}>
+          Cómo funciona
+        </button>
+      </div>
+
+      {docAbierta && <Documentacion onCerrar={() => setDocAbierta(false)} />}
 
       <ConnectionBanner status={status} mensajeError={mensajeError} onReintentar={handleIniciar} />
 
