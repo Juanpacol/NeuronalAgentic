@@ -164,6 +164,57 @@
   );
 }
 
+/* ---------- PrioridadAlimentos ---------- */
+
+.viz-prioridad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.viz-prioridad-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.viz-prioridad-nombre {
+  font-size: var(--fs-subheadline);
+  color: var(--label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.viz-prioridad-pista {
+  height: 10px;
+  border-radius: var(--r-full);
+  background: var(--fill-control);
+  overflow: hidden;
+}
+
+.viz-prioridad-barra {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-full);
+  transition: width var(--dur-stream) linear;
+  will-change: width;
+}
+
+.viz-prioridad-detalle {
+  font-size: var(--fs-footnote);
+  color: var(--label-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viz-prioridad-barra {
+    transition: none;
+  }
+}
+
 /* ---------- CheshireGrin ---------- */
 
 .cheshire-grin {
