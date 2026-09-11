@@ -42,8 +42,8 @@ export function StatsBar({ status, stats, inicioMs }: StatsBarProps) {
       <span className={`badge badge-${status}`}>{ETIQUETAS_ESTADO[status]}</span>
       <span>Generación: {stats?.generacion ?? '—'}</span>
       <span>Tiempo: {formatearTiempo(transcurridoMs)}</span>
-      <span>Mejor aptitud: {stats ? stats.mejor_aptitud.toFixed(4) : '—'}</span>
-      <span>Aptitud promedio: {stats ? stats.aptitud_promedio.toFixed(4) : '—'}</span>
+      <span>Mejor distancia: {stats ? stats.distancia_mejor.toFixed(3) : '—'}</span>
+      <span>Distancia promedio: {stats ? stats.distancia_promedio.toFixed(3) : '—'}</span>
       <span>Sin mejora: {stats?.generaciones_sin_mejora ?? '—'}</span>
     </div>
   )

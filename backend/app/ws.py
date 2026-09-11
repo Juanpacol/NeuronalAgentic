@@ -1,12 +1,11 @@
-"""Endpoint WebSocket /ws/evolucion: streaming de generaciones del algoritmo genético."""
+"""Endpoint WebSocket /ws/evolucion: streaming de generaciones del algoritmo genético (TSP)."""
 from __future__ import annotations
 
 import asyncio
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from . import targets_store
-from .ag.fitness import preparar_objetivo
+from .ag.ciudades import calcular_matriz_distancias, generar_ciudades
 from .ag.parametros import ParametrosAG
 from .runner import RunManager
 
@@ -33,23 +32,22 @@ async def ws_evolucion(websocket: WebSocket):
 
                 params_dict = mensaje.get("params") or {}
                 params = ParametrosAG(**params_dict)
-                target_id = mensaje.get("target_id", "default")
 
-                imagen = targets_store.obtener_imagen(target_id)
-                if imagen is None:
-                    await websocket.send_json({"tipo": "error", "codigo": "target_invalido"})
-                    continue
-
-                objetivo_arr = preparar_objetivo(imagen, params.resolucion_trabajo)
+                ciudades = generar_ciudades(params.num_ciudades, params.semilla_ciudades)
+                matriz_distancias = calcular_matriz_distancias(ciudades)
 
                 run = run_manager.crear_run(params)
-                await websocket.send_json({"tipo": "iniciado", "run_id": run.run_id})
+                await websocket.send_json({
+                    "tipo": "iniciado",
+                    "run_id": run.run_id,
+                    "ciudades": ciudades.tolist(),
+                })
 
                 async def enviar(msg, ws=websocket):
                     await ws.send_json(msg)
 
                 task = asyncio.create_task(
-                    run_manager.ejecutar(run, objetivo_arr, enviar)
+                    run_manager.ejecutar(run, matriz_distancias, enviar)
                 )
                 run.task = task
 

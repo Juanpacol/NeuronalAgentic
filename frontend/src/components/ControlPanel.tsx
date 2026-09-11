@@ -7,7 +7,6 @@ import type {
   OpcionesParametros,
   ParametrosAG,
   Seleccion,
-  TargetInfo,
 } from '../lib/tipos'
 
 interface ControlPanelProps {
@@ -15,9 +14,6 @@ interface ControlPanelProps {
   onChange: (params: ParametrosAG) => void
   opciones: OpcionesParametros['opciones']
   status: EstadoConexion
-  targets: TargetInfo[]
-  targetId: string
-  onTargetIdChange: (id: string) => void
   onIniciar: () => void
   onPausar: () => void
   onReanudar: () => void
@@ -30,9 +26,6 @@ export function ControlPanel({
   onChange,
   opciones,
   status,
-  targets,
-  targetId,
-  onTargetIdChange,
   onIniciar,
   onPausar,
   onReanudar,
@@ -70,12 +63,12 @@ export function ControlPanel({
         </label>
 
         <label>
-          Número de triángulos
+          Número de ciudades
           <input
             type="number"
-            min={1}
-            value={params.num_triangulos}
-            onChange={(e) => actualizar('num_triangulos', numero(e))}
+            min={3}
+            value={params.num_ciudades}
+            onChange={(e) => actualizar('num_ciudades', numero(e))}
           />
         </label>
 
@@ -139,6 +132,18 @@ export function ControlPanel({
           </label>
         )}
 
+        {params.seleccion === 'heuristica' && (
+          <label>
+            Núm. mejores (truncamiento)
+            <input
+              type="number"
+              min={1}
+              value={params.num_mejores}
+              onChange={(e) => actualizar('num_mejores', numero(e))}
+            />
+          </label>
+        )}
+
         <label>
           Cruce
           <select value={params.cruce} onChange={(e) => actualizar('cruce', e.target.value as Cruce)}>
@@ -148,15 +153,6 @@ export function ControlPanel({
               </option>
             ))}
           </select>
-        </label>
-
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={params.cruce_por_triangulo}
-            onChange={(e) => actualizar('cruce_por_triangulo', e.target.checked)}
-          />
-          Cruce por triángulo
         </label>
 
         <label>
@@ -171,17 +167,6 @@ export function ControlPanel({
               </option>
             ))}
           </select>
-        </label>
-
-        <label>
-          Sigma de mutación
-          <input
-            type="number"
-            min={0}
-            step={0.01}
-            value={params.sigma_mutacion}
-            onChange={(e) => actualizar('sigma_mutacion', numero(e))}
-          />
         </label>
 
         <label>
@@ -236,49 +221,42 @@ export function ControlPanel({
 
         {params.criterio_parada === 'objetivo' && (
           <label>
-            Aptitud objetivo
+            Distancia objetivo
             <input
               type="number"
               min={0}
-              max={1}
-              step={0.01}
-              value={params.aptitud_objetivo}
-              onChange={(e) => actualizar('aptitud_objetivo', numero(e))}
+              step={0.1}
+              value={params.distancia_objetivo}
+              onChange={(e) => actualizar('distancia_objetivo', numero(e))}
             />
           </label>
         )}
 
         <label>
-          Resolución de trabajo (px)
+          Semilla de ciudades (opcional)
           <input
             type="number"
-            min={16}
-            value={params.resolucion_trabajo}
-            onChange={(e) => actualizar('resolucion_trabajo', numero(e))}
+            value={params.semilla_ciudades ?? ''}
+            placeholder="aleatoria"
+            onChange={(e) => {
+              const v = e.target.value
+              actualizar('semilla_ciudades', v === '' ? null : Number(v))
+            }}
           />
         </label>
 
         <label>
-          Seed
+          Seed del AG (opcional)
           <input
             type="number"
-            value={params.seed}
-            onChange={(e) => actualizar('seed', numero(e))}
+            value={params.seed ?? ''}
+            placeholder="aleatoria"
+            onChange={(e) => {
+              const v = e.target.value
+              actualizar('seed', v === '' ? null : Number(v))
+            }}
           />
         </label>
-
-        {targets.length > 0 && (
-          <label>
-            Imagen objetivo
-            <select value={targetId} onChange={(e) => onTargetIdChange(e.target.value)}>
-              {targets.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.nombre}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
       </fieldset>
 
       <div className="button-row">

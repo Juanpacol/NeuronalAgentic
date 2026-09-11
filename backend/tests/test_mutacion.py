@@ -1,41 +1,61 @@
 import random
-from collections import Counter
 
 import numpy as np
 import pytest
 
-from app.ag.mutacion import desplazamiento, heuristica, insercion, intercambio
-
-REORDENAMIENTO = [intercambio, desplazamiento, insercion]
+from app.ag import mutacion
 
 
-@pytest.mark.parametrize("f_mut", [heuristica, intercambio, desplazamiento, insercion])
-def test_salida_en_rango(f_mut):
-    rng = random.Random(0)
-    genoma = np.random.RandomState(1).rand(100).astype(np.float32)
-    salida = f_mut(genoma, 0.5, rng)
-    assert np.all(salida >= 0.0) and np.all(salida <= 1.0)
-    assert len(salida) == 100
+def _permutacion_valida(salida: np.ndarray, n: int) -> bool:
+    return len(salida) == n and set(salida.tolist()) == set(range(n))
 
 
-@pytest.mark.parametrize("f_mut", [heuristica, intercambio, desplazamiento, insercion])
-def test_prob_cero_es_identidad(f_mut):
-    rng = random.Random(0)
-    genoma = np.random.RandomState(1).rand(100).astype(np.float32)
-    salida = f_mut(genoma, 0.0, rng)
+OPERADORES = [mutacion.intercambio, mutacion.desplazamiento, mutacion.insercion]
+
+
+@pytest.mark.parametrize("operador", OPERADORES)
+def test_mutacion_preserva_permutacion_valida(operador):
+    rng = random.Random(3)
+    n = 10
+    genoma = np.random.default_rng(5).permutation(n).astype(np.int32)
+    for _ in range(20):
+        salida = operador(genoma, 1.0, rng)
+        assert _permutacion_valida(salida, n)
+
+
+@pytest.mark.parametrize("operador", OPERADORES)
+def test_prob_cero_es_identidad(operador):
+    rng = random.Random(4)
+    genoma = np.arange(9, dtype=np.int32)
+    salida = operador(genoma, 0.0, rng)
     assert np.array_equal(salida, genoma)
 
 
-@pytest.mark.parametrize("f_mut", REORDENAMIENTO)
-def test_reordenamiento_preserva_multiconjunto_de_bloques(f_mut):
-    rng = random.Random(0)
-    genoma = np.random.RandomState(1).rand(100).astype(np.float32)
+def test_heuristica_sin_matriz_es_permutacion_valida():
+    rng = random.Random(6)
+    n = 8
+    genoma = np.random.default_rng(9).permutation(n).astype(np.int32)
+    salida = mutacion.heuristica(genoma, 1.0, rng)
+    assert _permutacion_valida(salida, n)
 
-    def bloques_como_tuplas(g):
-        return Counter(
-            tuple(round(float(v), 6) for v in g[i * 10:(i + 1) * 10])
-            for i in range(10)
-        )
 
-    salida = f_mut(genoma, 1.0, rng)
-    assert bloques_como_tuplas(salida) == bloques_como_tuplas(genoma)
+def test_heuristica_con_matriz_mejora_o_iguala_distancia():
+    from app.ag.ciudades import calcular_matriz_distancias, generar_ciudades
+    from app.ag.fitness import calcular_distancia_ruta
+
+    rng = random.Random(11)
+    ciudades = generar_ciudades(8, seed=1)
+    matriz = calcular_matriz_distancias(ciudades)
+    genoma = np.random.default_rng(2).permutation(8).astype(np.int32)
+    dist_antes = calcular_distancia_ruta(genoma, matriz)
+    salida = mutacion.heuristica(genoma, 1.0, rng, matriz_distancias=matriz)
+    dist_despues = calcular_distancia_ruta(salida, matriz)
+    assert dist_despues <= dist_antes
+    assert _permutacion_valida(salida, 8)
+
+
+def test_heuristica_prob_cero_es_identidad():
+    rng = random.Random(4)
+    genoma = np.arange(9, dtype=np.int32)
+    salida = mutacion.heuristica(genoma, 0.0, rng)
+    assert np.array_equal(salida, genoma)

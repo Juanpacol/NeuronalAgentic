@@ -2,28 +2,27 @@ import type { OpcionesParametros, ParametrosAG } from './tipos'
 
 /**
  * Defaults y opciones hardcodeadas como fallback, usadas cuando
- * GET /api/parametros/opciones no responde (p. ej. backend aún no displegado).
+ * GET /api/parametros/opciones no responde (p. ej. backend aún no desplegado).
  * Siempre se intenta primero el fetch real; esto es solo el respaldo.
  */
 export const PARAMETROS_DEFAULT: ParametrosAG = {
-  poblacion: 50,
-  num_triangulos: 110,
-  prob_cruce: 0.7,
+  poblacion: 60,
+  num_ciudades: 30,
+  prob_cruce: 0.85,
   prob_mutacion: 0.15,
   elitismo: 3,
   seleccion: 'torneo',
   k_torneo: 3,
-  cruce: 'un_punto',
-  cruce_por_triangulo: true,
+  num_mejores: 10,
+  cruce: 'dos_puntos',
   mutacion: 'heuristica',
-  sigma_mutacion: 0.1,
   criterio_parada: 'generaciones',
-  max_generaciones: 500,
+  max_generaciones: 400,
   epsilon: 0.0005,
-  paciencia: 30,
-  aptitud_objetivo: 0.97,
-  resolucion_trabajo: 128,
-  seed: 42,
+  paciencia: 40,
+  distancia_objetivo: 5.0,
+  semilla_ciudades: null,
+  seed: null,
 }
 
 export const OPCIONES_PARAMETROS_FALLBACK: OpcionesParametros = {

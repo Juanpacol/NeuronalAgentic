@@ -1,27 +1,45 @@
-import type { Triangulo } from './tipos'
+import type { Ciudad } from './tipos'
 
 const EXPORT_WIDTH = 1920
 const EXPORT_HEIGHT = 1080
 
-/** Dibuja los triángulos de un genoma sobre un contexto ya escalado a coordenadas [0,1]. */
-export function dibujarTriangulos(ctx: CanvasRenderingContext2D, triangulos: Triangulo[]): void {
-  for (const tri of triangulos) {
-    const [p0, p1, p2] = tri.puntos
-    const [r, g, b] = tri.color
+/**
+ * Dibuja el mapa de ciudades y la ruta actual sobre un contexto ya escalado
+ * a coordenadas [0,1] (ver setTransform en RouteCanvas/exportarRutaComoPng).
+ */
+export function dibujarRuta(
+  ctx: CanvasRenderingContext2D,
+  ciudades: Ciudad[],
+  ruta: number[] | null,
+): void {
+  if (ruta && ruta.length > 1) {
     ctx.beginPath()
-    ctx.moveTo(p0[0], p0[1])
-    ctx.lineTo(p1[0], p1[1])
-    ctx.lineTo(p2[0], p2[1])
-    ctx.closePath()
-    ctx.fillStyle = `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${tri.alpha})`
+    const [x0, y0] = ciudades[ruta[0]]
+    ctx.moveTo(x0, y0)
+    for (let i = 1; i < ruta.length; i++) {
+      const [x, y] = ciudades[ruta[i]]
+      ctx.lineTo(x, y)
+    }
+    ctx.closePath() // vuelve a la ciudad de inicio (ciclo cerrado)
+    ctx.strokeStyle = '#3498db'
+    ctx.lineWidth = 0.004
+    ctx.stroke()
+  }
+
+  // ciudades como puntos, encima de la ruta
+  for (const [x, y] of ciudades) {
+    ctx.beginPath()
+    ctx.arc(x, y, 0.009, 0, Math.PI * 2)
+    ctx.fillStyle = '#e74c3c'
     ctx.fill()
   }
 }
 
-/** Renderiza un genoma (lista de triángulos) a un PNG offscreen a resolución fija y lo descarga. */
-export function exportarGenomaComoPng(
-  triangulos: Triangulo[] | null,
-  nombreArchivo = 'genoma.png',
+/** Renderiza el mapa + ruta a un PNG offscreen a resolución fija y lo descarga. */
+export function exportarRutaComoPng(
+  ciudades: Ciudad[],
+  ruta: number[] | null,
+  nombreArchivo = 'ruta.png',
 ): void {
   const canvas = document.createElement('canvas')
   canvas.width = EXPORT_WIDTH
@@ -30,11 +48,9 @@ export function exportarGenomaComoPng(
   if (!ctx) return
 
   ctx.setTransform(canvas.width, 0, 0, canvas.height, 0, 0)
-  ctx.fillStyle = '#000000'
+  ctx.fillStyle = '#0d1b2a'
   ctx.fillRect(0, 0, 1, 1)
-  if (triangulos) {
-    dibujarTriangulos(ctx, triangulos)
-  }
+  dibujarRuta(ctx, ciudades, ruta)
   ctx.setTransform(1, 0, 0, 1, 0, 0)
 
   canvas.toBlob((blob) => {

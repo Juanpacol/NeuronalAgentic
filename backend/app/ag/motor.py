@@ -1,4 +1,4 @@
-"""Motor del algoritmo genético: bucle evolutivo principal."""
+"""Motor del algoritmo genético: bucle evolutivo principal (TSP)."""
 from __future__ import annotations
 
 import random
@@ -8,7 +8,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .fitness import calcular_aptitud
+from .fitness import calcular_aptitud, calcular_distancia_ruta
 from .parada import evaluar_parada
 from .parametros import ParametrosAG
 from .poblacion import crear_poblacion, estadisticas
@@ -21,7 +21,10 @@ class EstadoGeneracion:
     mejor_aptitud: float
     aptitud_promedio: float
     aptitud_peor: float
-    genoma_mejor: np.ndarray | None
+    distancia_mejor: float
+    distancia_promedio: float
+    distancia_peor: float
+    ruta_mejor: np.ndarray | None
     tiempo_ms: float
     generaciones_sin_mejora: int
     razon_parada: str | None = None
@@ -35,36 +38,26 @@ def _kwargs_seleccion(params: ParametrosAG) -> dict:
     return {}
 
 
-def _kwargs_cruce(params: ParametrosAG) -> dict:
-    return {"cruce_por_triangulo": params.cruce_por_triangulo}
-
-
-def _aplicar_mutacion(genoma: np.ndarray, params: ParametrosAG, rng: random.Random) -> np.ndarray:
+def _aplicar_mutacion(
+    genoma: np.ndarray, params: ParametrosAG, rng: random.Random, matriz_distancias: np.ndarray
+) -> np.ndarray:
     f_mutacion = REGISTRO_MUTACION[params.mutacion]
     if params.mutacion == "heuristica":
-        genoma = f_mutacion(genoma, params.prob_mutacion, rng, sigma=params.sigma_mutacion)
-    else:
-        genoma = f_mutacion(genoma, params.prob_mutacion, rng)
-
-    # operador de reordenamiento opcional (adicional a la mutación principal)
-    if params.operador_reordenamiento:
-        f_reorden = REGISTRO_MUTACION[params.operador_reordenamiento]
-        genoma = f_reorden(genoma, params.prob_reordenamiento, rng)
-    return genoma
+        return f_mutacion(genoma, params.prob_mutacion, rng, matriz_distancias=matriz_distancias)
+    return f_mutacion(genoma, params.prob_mutacion, rng)
 
 
 async def evolucionar(
     params: ParametrosAG,
-    objetivo_arr: np.ndarray,
+    matriz_distancias: np.ndarray,
     debe_detener: Callable[[], bool] | None = None,
 ) -> AsyncIterator[EstadoGeneracion]:
     """Ejecuta el bucle evolutivo, cediendo un EstadoGeneracion por generación."""
     import asyncio
 
     rng = random.Random(params.seed)
-    resolucion = params.resolucion_trabajo
 
-    poblacion = crear_poblacion(params.poblacion, params.num_triangulos, rng)
+    poblacion = crear_poblacion(params.poblacion, params.num_ciudades, rng)
     f_seleccion = REGISTRO_SELECCION[params.seleccion]
     f_cruce = REGISTRO_CRUCE[params.cruce]
 
@@ -76,13 +69,20 @@ async def evolucionar(
         inicio = time.perf_counter()
 
         aptitudes = np.array(
-            [calcular_aptitud(ind, objetivo_arr, resolucion) for ind in poblacion]
+            [calcular_aptitud(ind, matriz_distancias) for ind in poblacion]
+        )
+        distancias = np.array(
+            [calcular_distancia_ruta(ind, matriz_distancias) for ind in poblacion]
         )
         orden = np.argsort(-aptitudes)
         poblacion = [poblacion[i] for i in orden]
         aptitudes = aptitudes[orden]
+        distancias = distancias[orden]
 
         mejor, promedio, peor = estadisticas(aptitudes)
+        dist_mejor, dist_promedio, dist_peor = (
+            float(distancias.min()), float(distancias.mean()), float(distancias.max())
+        )
 
         if mejor > mejor_aptitud_historica + params.epsilon:
             generaciones_sin_mejora = 0
@@ -94,7 +94,7 @@ async def evolucionar(
 
         detener_externo = debe_detener() if debe_detener else False
         razon = evaluar_parada(
-            params, generacion, mejor, generaciones_sin_mejora, detener_externo
+            params, generacion, dist_mejor, generaciones_sin_mejora, detener_externo
         )
 
         estado = EstadoGeneracion(
@@ -102,7 +102,10 @@ async def evolucionar(
             mejor_aptitud=mejor,
             aptitud_promedio=promedio,
             aptitud_peor=peor,
-            genoma_mejor=poblacion[0].copy(),
+            distancia_mejor=dist_mejor,
+            distancia_promedio=dist_promedio,
+            distancia_peor=dist_peor,
+            ruta_mejor=poblacion[0].copy(),
             tiempo_ms=tiempo_ms,
             generaciones_sin_mejora=generaciones_sin_mejora,
             razon_parada=razon,
@@ -116,7 +119,6 @@ async def evolucionar(
         nueva_poblacion: list[np.ndarray] = [ind.copy() for ind in poblacion[: params.elitismo]]
 
         n_padres = params.poblacion - params.elitismo
-        # se necesitan padres en pares
         n_padres_par = n_padres + (n_padres % 2)
         indices_padres = f_seleccion(
             poblacion, aptitudes, n_padres_par, rng, **_kwargs_seleccion(params)
@@ -129,14 +131,14 @@ async def evolucionar(
             p1, p2 = poblacion[i1], poblacion[i2]
 
             if rng.random() < params.prob_cruce:
-                h1, h2 = f_cruce(p1, p2, rng, **_kwargs_cruce(params))
+                h1, h2 = f_cruce(p1, p2, rng)
             else:
                 h1, h2 = p1.copy(), p2.copy()
 
-            h1 = _aplicar_mutacion(h1, params, rng)
+            h1 = _aplicar_mutacion(h1, params, rng, matriz_distancias)
             nueva_poblacion.append(h1)
             if len(nueva_poblacion) < params.poblacion:
-                h2 = _aplicar_mutacion(h2, params, rng)
+                h2 = _aplicar_mutacion(h2, params, rng, matriz_distancias)
                 nueva_poblacion.append(h2)
 
             i += 2

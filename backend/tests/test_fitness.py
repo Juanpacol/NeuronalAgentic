@@ -1,60 +1,38 @@
-import random
-
 import numpy as np
-from PIL import Image
+import pytest
 
-from app.ag.fitness import calcular_aptitud, preparar_objetivo, rasterizar
-from app.ag.representacion import crear_individuo
+from app.ag.fitness import calcular_aptitud, calcular_distancia_ruta
 
-
-def test_render_identico_al_objetivo_da_aptitud_alta():
-    rng = random.Random(3)
-    genoma = crear_individuo(60, rng)
-    render = rasterizar(genoma, 64).convert("RGB")
-    objetivo = np.array(render, dtype=np.uint8)
-    aptitud = calcular_aptitud(genoma, objetivo, 64)
-    assert aptitud > 0.999
+# Cuadrado unitario: 4 ciudades en las esquinas.
+CIUDADES = np.array([
+    [0.0, 0.0],
+    [1.0, 0.0],
+    [1.0, 1.0],
+    [0.0, 1.0],
+])
 
 
-def test_imagen_distinta_da_aptitud_baja():
-    rng = random.Random(4)
-    genoma = crear_individuo(60, rng)
-    objetivo = np.zeros((64, 64, 3), dtype=np.uint8)
-    objetivo[:, :] = [255, 255, 255]
-    # genoma completamente negro (r,g,b=0) sobre fondo blanco -> muy distinto
-    genoma_negro = genoma.copy()
-    for i in range(60):
-        genoma_negro[i * 10 + 6] = 0.0
-        genoma_negro[i * 10 + 7] = 0.0
-        genoma_negro[i * 10 + 8] = 0.0
-        genoma_negro[i * 10 + 9] = 1.0
-    aptitud = calcular_aptitud(genoma_negro, objetivo, 64)
-    assert aptitud < 0.5
+def _matriz_distancias(ciudades: np.ndarray) -> np.ndarray:
+    diff = ciudades[:, None, :] - ciudades[None, :, :]
+    return np.sqrt((diff ** 2).sum(axis=-1))
 
 
-def test_monotonia_respecto_a_ruido():
-    rng = random.Random(5)
-    genoma = crear_individuo(60, rng)
-    render = rasterizar(genoma, 64).convert("RGB")
-    objetivo = np.array(render, dtype=np.uint8)
-
-    aptitud_base = calcular_aptitud(genoma, objetivo, 64)
-
-    rng_ruido = np.random.RandomState(0)
-    aptitud_previa = aptitud_base
-    for nivel in (0.05, 0.15, 0.3):
-        # promediar varias corridas por nivel para evitar ruido de una sola muestra
-        aptitudes_nivel = []
-        for _ in range(5):
-            ruidoso = genoma + rng_ruido.normal(0, nivel, size=genoma.shape).astype(np.float32)
-            ruidoso = np.clip(ruidoso, 0.0, 1.0).astype(np.float32)
-            aptitudes_nivel.append(calcular_aptitud(ruidoso, objetivo, 64))
-        aptitud_ruidosa = float(np.mean(aptitudes_nivel))
-        assert aptitud_ruidosa <= aptitud_previa + 1e-6
-        aptitud_previa = aptitud_ruidosa
+def test_distancia_ruta_perimetro_del_cuadrado():
+    matriz = _matriz_distancias(CIUDADES)
+    ruta = np.array([0, 1, 2, 3], dtype=np.int32)  # recorre el perímetro
+    distancia = calcular_distancia_ruta(ruta, matriz)
+    assert distancia == pytest.approx(4.0)
 
 
-def test_preparar_objetivo_devuelve_resolucion_correcta():
-    img = Image.new("RGB", (200, 100), (10, 20, 30))
-    arr = preparar_objetivo(img, 64)
-    assert arr.shape == (64, 64, 3)
+def test_distancia_ruta_en_diagonal_es_mayor():
+    matriz = _matriz_distancias(CIUDADES)
+    perimetro = calcular_distancia_ruta(np.array([0, 1, 2, 3], dtype=np.int32), matriz)
+    cruzada = calcular_distancia_ruta(np.array([0, 2, 1, 3], dtype=np.int32), matriz)
+    assert cruzada > perimetro
+
+
+def test_aptitud_mayor_cuando_distancia_menor():
+    matriz = _matriz_distancias(CIUDADES)
+    buena = np.array([0, 1, 2, 3], dtype=np.int32)
+    mala = np.array([0, 2, 1, 3], dtype=np.int32)
+    assert calcular_aptitud(buena, matriz) > calcular_aptitud(mala, matriz)

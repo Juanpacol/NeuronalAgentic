@@ -1,113 +1,76 @@
-import pytest
-from PIL import Image
+import asyncio
 
-from app.ag.fitness import preparar_objetivo
+import numpy as np
+
+from app.ag.ciudades import calcular_matriz_distancias, generar_ciudades
 from app.ag.motor import evolucionar
 from app.ag.parametros import ParametrosAG
 
 
-def _objetivo():
-    img = Image.new("RGB", (64, 64), (30, 120, 200))
-    return preparar_objetivo(img, 32)
+def _correr(params: ParametrosAG, matriz: np.ndarray) -> list:
+    async def _run():
+        estados = []
+        async for estado in evolucionar(params, matriz):
+            estados.append(estado)
+        return estados
+
+    return asyncio.run(_run())
 
 
-@pytest.mark.asyncio
-async def test_mejor_aptitud_no_decreciente():
+def _matriz_prueba(n=8, seed=1):
+    ciudades = generar_ciudades(n, seed)
+    return calcular_matriz_distancias(ciudades)
+
+
+def test_distancia_mejor_no_crece():
+    matriz = _matriz_prueba()
     params = ParametrosAG(
-        poblacion=12,
-        num_triangulos=10,
-        elitismo=2,
-        max_generaciones=30,
-        resolucion_trabajo=32,
-        criterio_parada="generaciones",
-        seed=123,
+        poblacion=20, num_ciudades=8, elitismo=2, seed=42,
+        criterio_parada="generaciones", max_generaciones=30,
     )
-    objetivo = _objetivo()
-    mejores = []
-    async for estado in evolucionar(params, objetivo):
-        mejores.append(estado.mejor_aptitud)
-    assert len(mejores) == 31  # generaciones 0..30 inclusive
-    for i in range(1, len(mejores)):
-        assert mejores[i] >= mejores[i - 1] - 1e-9
+    estados = _correr(params, matriz)
+    distancias = [e.distancia_mejor for e in estados]
+    for i in range(1, len(distancias)):
+        assert distancias[i] <= distancias[i - 1] + 1e-9
 
 
-@pytest.mark.asyncio
-async def test_misma_seed_produce_series_identicas():
+def test_reproducibilidad_con_misma_seed():
+    matriz = _matriz_prueba()
     params = ParametrosAG(
-        poblacion=10,
-        num_triangulos=8,
-        elitismo=1,
-        max_generaciones=15,
-        resolucion_trabajo=32,
-        seed=7,
+        poblacion=20, num_ciudades=8, elitismo=2, seed=7,
+        criterio_parada="generaciones", max_generaciones=15,
     )
-    objetivo = _objetivo()
-
-    serie1 = [e.mejor_aptitud async for e in evolucionar(params, objetivo)]
-    serie2 = [e.mejor_aptitud async for e in evolucionar(params, objetivo)]
+    serie1 = [e.distancia_mejor for e in _correr(params, matriz)]
+    serie2 = [e.distancia_mejor for e in _correr(params, matriz)]
     assert serie1 == serie2
 
 
-@pytest.mark.asyncio
-async def test_criterio_max_generaciones():
+def test_criterio_parada_generaciones():
+    matriz = _matriz_prueba()
     params = ParametrosAG(
-        poblacion=8, num_triangulos=6, max_generaciones=5,
-        resolucion_trabajo=32, criterio_parada="generaciones", seed=1,
+        poblacion=10, num_ciudades=6, seed=1,
+        criterio_parada="generaciones", max_generaciones=5,
     )
-    objetivo = _objetivo()
-    razones = []
-    async for estado in evolucionar(params, objetivo):
-        if estado.razon_parada:
-            razones.append(estado.razon_parada)
-    assert razones == ["max_generaciones"]
+    estados = _correr(params, matriz)
+    assert estados[-1].razon_parada == "max_generaciones"
+    assert estados[-1].generacion == 5
 
 
-@pytest.mark.asyncio
-async def test_criterio_objetivo():
+def test_criterio_parada_convergencia():
+    matriz = _matriz_prueba()
     params = ParametrosAG(
-        poblacion=8, num_triangulos=6, max_generaciones=50,
-        resolucion_trabajo=32, criterio_parada="objetivo",
-        aptitud_objetivo=-1.0,  # se alcanza inmediatamente
-        seed=1,
+        poblacion=10, num_ciudades=6, seed=1,
+        criterio_parada="convergencia", paciencia=3, max_generaciones=500,
     )
-    objetivo = _objetivo()
-    ultima = None
-    async for estado in evolucionar(params, objetivo):
-        ultima = estado
-    assert ultima.razon_parada == "aptitud_objetivo_alcanzada"
-    assert ultima.generacion == 0
+    estados = _correr(params, matriz)
+    assert estados[-1].razon_parada in ("convergencia", "max_generaciones")
 
 
-@pytest.mark.asyncio
-async def test_criterio_convergencia():
+def test_criterio_parada_objetivo():
+    matriz = _matriz_prueba()
     params = ParametrosAG(
-        poblacion=8, num_triangulos=6, max_generaciones=200,
-        resolucion_trabajo=32, criterio_parada="convergencia",
-        paciencia=3, epsilon=1.0,  # epsilon enorme: nunca cuenta como mejora real
-        seed=1,
+        poblacion=20, num_ciudades=6, seed=1,
+        criterio_parada="objetivo", distancia_objetivo=100.0, max_generaciones=50,
     )
-    objetivo = _objetivo()
-    ultima = None
-    async for estado in evolucionar(params, objetivo):
-        ultima = estado
-    assert ultima.razon_parada == "convergencia"
-    assert ultima.generacion == 3
-
-
-@pytest.mark.asyncio
-async def test_detencion_externa():
-    params = ParametrosAG(
-        poblacion=8, num_triangulos=6, max_generaciones=200,
-        resolucion_trabajo=32, seed=1,
-    )
-    objetivo = _objetivo()
-    contador = {"n": 0}
-
-    def debe_detener():
-        contador["n"] += 1
-        return contador["n"] > 3
-
-    ultima = None
-    async for estado in evolucionar(params, objetivo, debe_detener=debe_detener):
-        ultima = estado
-    assert ultima.razon_parada == "detenido_por_usuario"
+    estados = _correr(params, matriz)
+    assert estados[-1].razon_parada == "distancia_objetivo_alcanzada"

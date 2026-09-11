@@ -1,7 +1,13 @@
 import { OPCIONES_PARAMETROS_FALLBACK } from './defaults'
-import type { CriterioParada, OpcionesParametros, ParametrosAG, TargetInfo } from './tipos'
+import type { CriterioParada, OpcionesParametros, ParametrosAG } from './tipos'
 
 const CRITERIOS_PARADA: CriterioParada[] = ['generaciones', 'convergencia', 'objetivo']
+
+export const API_URL: string =
+  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000'
+
+export const WS_URL: string =
+  (import.meta.env.VITE_WS_URL as string | undefined) ?? 'ws://localhost:8000/ws/evolucion'
 
 /**
  * Forma real de GET /api/parametros/opciones en el backend: plana, sin envoltorio
@@ -12,7 +18,7 @@ interface OpcionesBackendCrudo {
   seleccion: OpcionesParametros['opciones']['seleccion']
   cruce: OpcionesParametros['opciones']['cruce']
   mutacion: OpcionesParametros['opciones']['mutacion']
-  defaults: ParametrosAG & { seed: number | null }
+  defaults: ParametrosAG & { seed: number | null; semilla_ciudades: number | null }
 }
 
 function adaptarOpciones(crudo: OpcionesBackendCrudo): OpcionesParametros {
@@ -25,16 +31,11 @@ function adaptarOpciones(crudo: OpcionesBackendCrudo): OpcionesParametros {
     },
     defaults: {
       ...crudo.defaults,
-      seed: crudo.defaults.seed ?? 42,
+      seed: crudo.defaults.seed ?? null,
+      semilla_ciudades: crudo.defaults.semilla_ciudades ?? null,
     },
   }
 }
-
-export const API_URL: string =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000'
-
-export const WS_URL: string =
-  (import.meta.env.VITE_WS_URL as string | undefined) ?? 'ws://localhost:8000/ws/evolucion'
 
 /**
  * Dispara un GET /health silencioso, ignorando el resultado.
@@ -59,20 +60,5 @@ export async function obtenerOpcionesParametros(): Promise<OpcionesParametros> {
     return adaptarOpciones(data)
   } catch {
     return OPCIONES_PARAMETROS_FALLBACK
-  }
-}
-
-/**
- * Obtiene la lista de targets disponibles en el servidor.
- * Si falla, retorna una lista vacía (la app sigue funcionando con /target.jpg local).
- */
-export async function obtenerTargets(): Promise<TargetInfo[]> {
-  try {
-    const res = await fetch(`${API_URL}/api/targets`)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = (await res.json()) as TargetInfo[]
-    return data
-  } catch {
-    return []
   }
 }

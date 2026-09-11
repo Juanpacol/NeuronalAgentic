@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import type {
+  Ciudad,
   EstadisticasActuales,
   EstadoConexion,
   MensajeCliente,
   MensajeServidor,
   ParametrosAG,
   PuntoHistoria,
-  Triangulo,
 } from '../lib/tipos'
 
 const MAX_INTENTOS_RECONEXION = 5
@@ -19,8 +19,9 @@ interface UseEvolutionSocketResult {
   status: EstadoConexion
   stats: EstadisticasActuales | null
   historia: PuntoHistoria[]
-  genomaRef: RefObject<Triangulo[] | null>
-  iniciar: (params: ParametrosAG, targetId: string) => void
+  ciudadesRef: RefObject<Ciudad[]>
+  rutaRef: RefObject<number[] | null>
+  iniciar: (params: ParametrosAG) => void
   pausar: () => void
   reanudar: () => void
   detener: () => void
@@ -33,11 +34,12 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
   const [historia, setHistoria] = useState<PuntoHistoria[]>([])
   const [mensajeError, setMensajeError] = useState<string | null>(null)
 
-  const genomaRef = useRef<Triangulo[] | null>(null)
+  const ciudadesRef = useRef<Ciudad[]>([])
+  const rutaRef = useRef<number[] | null>(null)
   const socketRef = useRef<WebSocket | null>(null)
   const intentosRef = useRef(0)
   const corridaActivaRef = useRef(false)
-  const ultimosParamsRef = useRef<{ params: ParametrosAG; targetId: string } | null>(null)
+  const ultimosParamsRef = useRef<{ params: ParametrosAG } | null>(null)
 
   // Buffers pendientes de volcarse a React a ~8Hz.
   const statsPendientesRef = useRef<EstadisticasActuales | null>(null)
@@ -137,8 +139,8 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
 
         // Si esto es una reconexión durante una corrida activa, reinicia con los últimos params.
         if (esReconexion && corridaActivaRef.current && ultimosParamsRef.current) {
-          const { params, targetId } = ultimosParamsRef.current
-          enviar({ tipo: 'iniciar', params, target_id: targetId })
+          const { params } = ultimosParamsRef.current
+          enviar({ tipo: 'iniciar', params })
         }
       }
 
@@ -153,18 +155,23 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
         switch (msg.tipo) {
           case 'iniciado': {
             corridaActivaRef.current = true
+            ciudadesRef.current = msg.ciudades
+            rutaRef.current = null
             setStatus('running')
             break
           }
           case 'generacion': {
-            if (msg.genoma_mejor) {
-              genomaRef.current = msg.genoma_mejor
+            if (msg.ruta_mejor) {
+              rutaRef.current = msg.ruta_mejor
             }
             const punto: EstadisticasActuales = {
               generacion: msg.generacion,
               mejor_aptitud: msg.mejor_aptitud,
               aptitud_promedio: msg.aptitud_promedio,
               aptitud_peor: msg.aptitud_peor,
+              distancia_mejor: msg.distancia_mejor,
+              distancia_promedio: msg.distancia_promedio,
+              distancia_peor: msg.distancia_peor,
               generaciones_sin_mejora: msg.generaciones_sin_mejora,
               tiempo_ms: msg.tiempo_ms,
             }
@@ -174,6 +181,8 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
               mejor_aptitud: msg.mejor_aptitud,
               aptitud_promedio: msg.aptitud_promedio,
               aptitud_peor: msg.aptitud_peor,
+              distancia_mejor: msg.distancia_mejor,
+              distancia_promedio: msg.distancia_promedio,
             })
             sucioRef.current = true
             break
@@ -226,11 +235,11 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
   )
 
   const iniciar = useCallback(
-    (params: ParametrosAG, targetId: string) => {
-      ultimosParamsRef.current = { params, targetId }
+    (params: ParametrosAG) => {
+      ultimosParamsRef.current = { params }
       corridaActivaRef.current = true
       intentosRef.current = 0
-      genomaRef.current = null
+      rutaRef.current = null
       setHistoria([])
       setStats(null)
       historiaPendienteRef.current = []
@@ -238,7 +247,7 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
 
       const ws = socketRef.current
       if (ws && ws.readyState === WebSocket.OPEN) {
-        enviar({ tipo: 'iniciar', params, target_id: targetId })
+        enviar({ tipo: 'iniciar', params })
       } else {
         conectar(false)
         // El envío real de "iniciar" ocurre en onopen si fue reconexión;
@@ -246,7 +255,7 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
         const esperarYEnviar = () => {
           const s = socketRef.current
           if (s && s.readyState === WebSocket.OPEN) {
-            enviar({ tipo: 'iniciar', params, target_id: targetId })
+            enviar({ tipo: 'iniciar', params })
           } else if (s && s.readyState === WebSocket.CONNECTING) {
             setTimeout(esperarYEnviar, 50)
           }
@@ -283,5 +292,5 @@ export function useEvolutionSocket(wsUrl: string): UseEvolutionSocketResult {
     }
   }, [cerrarSocket, limpiarTimers])
 
-  return { status, stats, historia, genomaRef, iniciar, pausar, reanudar, detener, mensajeError }
+  return { status, stats, historia, ciudadesRef, rutaRef, iniciar, pausar, reanudar, detener, mensajeError }
 }

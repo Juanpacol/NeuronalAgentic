@@ -1,30 +1,32 @@
-// Tipos compartidos del contrato de API del backend (Algoritmo Genético).
+// Tipos compartidos del contrato de API del backend (Algoritmo Genético - TSP).
 
 export type Seleccion = 'proporcional' | 'torneo' | 'estocastica' | 'heuristica'
 export type Cruce = 'un_punto' | 'dos_puntos' | 'uniforme'
 export type Mutacion = 'heuristica' | 'intercambio' | 'desplazamiento' | 'insercion'
 export type CriterioParada = 'generaciones' | 'convergencia' | 'objetivo'
 
+/** Una ciudad del mapa: coordenadas [x, y] normalizadas en [0,1]. */
+export type Ciudad = [number, number]
+
 /** Parámetros de configuración del algoritmo genético, enviados al backend al iniciar una corrida. */
 export interface ParametrosAG {
   poblacion: number
-  num_triangulos: number
+  num_ciudades: number
   prob_cruce: number
   prob_mutacion: number
   elitismo: number
   seleccion: Seleccion
   k_torneo: number
+  num_mejores: number
   cruce: Cruce
-  cruce_por_triangulo: boolean
   mutacion: Mutacion
-  sigma_mutacion: number
   criterio_parada: CriterioParada
   max_generaciones: number
   epsilon: number
   paciencia: number
-  aptitud_objetivo: number
-  resolucion_trabajo: number
-  seed: number
+  distancia_objetivo: number
+  semilla_ciudades: number | null
+  seed: number | null
 }
 
 /** Respuesta de GET /api/parametros/opciones: opciones disponibles + defaults. */
@@ -38,41 +40,30 @@ export interface OpcionesParametros {
   defaults: ParametrosAG
 }
 
-/** Un target disponible en el servidor, listado por GET /api/targets. */
-export interface TargetInfo {
-  id: string
-  nombre: string
-  url?: string
-}
-
-/** Un triángulo decodificado del genoma, con todos los valores normalizados en [0,1]. */
-export interface Triangulo {
-  puntos: [[number, number], [number, number], [number, number]]
-  color: [number, number, number]
-  alpha: number
-}
-
 // ---- Mensajes del WebSocket /ws/evolucion ----
 
 /** Mensajes que el cliente envía al servidor. */
 export type MensajeCliente =
-  | { tipo: 'iniciar'; params: ParametrosAG; target_id: string }
+  | { tipo: 'iniciar'; params: ParametrosAG }
   | { tipo: 'pausar' }
   | { tipo: 'reanudar' }
   | { tipo: 'detener' }
 
 /** Mensajes que el servidor envía al cliente. */
 export type MensajeServidor =
-  | { tipo: 'iniciado'; run_id: string | number }
+  | { tipo: 'iniciado'; run_id: string | number; ciudades: Ciudad[] }
   | {
       tipo: 'generacion'
       generacion: number
       mejor_aptitud: number
       aptitud_promedio: number
       aptitud_peor: number
+      distancia_mejor: number
+      distancia_promedio: number
+      distancia_peor: number
       tiempo_ms: number
       generaciones_sin_mejora: number
-      genoma_mejor: Triangulo[] | null
+      ruta_mejor: number[] | null
     }
   | { tipo: 'finalizado'; razon: string; generaciones: number }
   | { tipo: 'error'; codigo: string }
@@ -94,6 +85,8 @@ export interface PuntoHistoria {
   mejor_aptitud: number
   aptitud_promedio: number
   aptitud_peor: number
+  distancia_mejor: number
+  distancia_promedio: number
 }
 
 /** Últimas estadísticas conocidas de la corrida (para StatsBar). */
@@ -102,6 +95,9 @@ export interface EstadisticasActuales {
   mejor_aptitud: number
   aptitud_promedio: number
   aptitud_peor: number
+  distancia_mejor: number
+  distancia_promedio: number
+  distancia_peor: number
   generaciones_sin_mejora: number
   tiempo_ms: number
 }

@@ -1,46 +1,83 @@
-# Informe — Laboratorio de Algoritmos Genéticos
+# Informe — Laboratorio de Algoritmos Genéticos (TSP)
+
+## De la aproximación de imágenes a TSP: por qué se cambió
+
+La primera versión del proyecto evolucionaba triángulos de color semitransparentes para
+aproximar una fotografía. Se abandonó por dos razones, confirmadas contra implementaciones
+reales de referencia (EvoLisa/genetic-lisa de Roger Johansson, image-approx, polygen):
+
+1. **Escala de convergencia incompatible con un curso**: esos proyectos necesitan entre 50.000
+   y 680.000+ generaciones para una foto reconocible (documentado en sus propios README). Con
+   un AG poblacional real (no hill-climbing) y recursos de CPU compartida (Render free tier),
+   eso es inviable para una demo en clase.
+2. **La mayoría no son AG poblacionales**: son hill-climbing (un individuo, mutar una copia,
+   quedarse con la que mejora). Eso no permite comparar selección/cruce/mutación como pide la
+   asignatura — adoptar ese enfoque habría sido más rápido pero pedagógicamente vacío.
+
+TSP (problema del vendedor viajero) resuelve ambos problemas: el fitness es una suma de
+distancias (microsegundos, no un rasterizado de imagen), converge en cientos de generaciones, y
+mantiene un AG poblacional genuino con cruce real entre individuos.
 
 ## Mapeo de componentes del curso al código
 
 | Componente (diapositivas) | Archivo | Descripción |
 |---|---|---|
-| C1 — Población | `backend/app/ag/poblacion.py` | Creación de la población inicial y cálculo de estadísticas (mejor, promedio, peor) |
-| C2 — Mecanismo de representación | `backend/app/ag/representacion.py` | Cromosoma lineal: array de floats normalizados, bloques de 10 genes por triángulo |
-| C3 — Función objetivo | `backend/app/ag/fitness.py` | Rasterizado con Pillow + comparación de píxeles contra la imagen objetivo |
+| C1 — Población | `backend/app/ag/poblacion.py` | Creación de la población inicial (permutaciones aleatorias) y estadísticas |
+| C2 — Mecanismo de representación | `backend/app/ag/representacion.py` | Cromosoma = permutación de `[0, num_ciudades)` |
+| C3 — Función objetivo | `backend/app/ag/fitness.py`, `ciudades.py` | Distancia total de la ruta (ciclo cerrado); aptitud = 1/(1+distancia) |
 | C4 — Operadores genéticos (selección) | `backend/app/ag/seleccion.py` | Proporcional, torneo, estocástica (SUS), heurística |
-| C4 — Operadores genéticos (cruce) | `backend/app/ag/cruce.py` | Un punto, dos puntos, uniforme |
-| C4 — Operadores genéticos (mutación) | `backend/app/ag/mutacion.py` | Heurística (gaussiana), intercambio, desplazamiento, inserción |
+| C4 — Operadores genéticos (cruce) | `backend/app/ag/cruce.py` | Un punto, dos puntos, uniforme — todas variantes de Order Crossover (OX) |
+| C4 — Operadores genéticos (mutación) | `backend/app/ag/mutacion.py` | Heurística (2-opt simplificado), intercambio, desplazamiento, inserción |
 | C5 — Parámetros iniciales | `backend/app/ag/parametros.py` | Tamaño de población, probabilidades, elitismo, criterio de parada |
 
-## Sobre los operadores de mutación de permutación
+## Por qué el cruce no puede ser "de un punto" literal en TSP
 
-Las diapositivas del curso presentan intercambio, desplazamiento e inserción como técnicas de
-mutación pensadas originalmente para cromosomas donde el orden de los genes *es* la solución
-(por ejemplo, una ruta o una secuencia). El cromosoma de este proyecto no es de ese tipo: es un
-vector de floats donde cada bloque de 10 posiciones describe un triángulo independiente.
+Un cromosoma de permutación no admite el cruce de un punto/dos puntos/uniforme tal como se
+enseña para cromosomas binarios o reales: cortar y pegar segmentos de dos padres casi siempre
+produce un hijo con ciudades repetidas y otras ausentes (no es una permutación válida).
 
-Aplicarlos de forma literal (intercambiar dos floats sueltos, o desplazar genes individuales)
-no tendría ningún efecto con sentido semántico — mezclaría, por ejemplo, una coordenada X con
-un canal de color. La adaptación implementada opera sobre **triángulos completos** (bloques de
-10 genes) en vez de genes sueltos:
+La adaptación estándar de la literatura es **Order Crossover (OX)**: se conserva un segmento de
+un padre tal cual, y el resto de las ciudades se completa en el orden en que aparecen en el
+otro padre, saltando las que ya están. Esto garantiza que el hijo sea siempre una permutación
+válida. Se mantienen los tres nombres que pide el curso porque son variantes reales de OX:
 
-- **Intercambio**: cambia el orden de pintado de dos triángulos.
-- **Desplazamiento**: rota un bloque de triángulos k posiciones, cambiando su profundidad relativa.
-- **Inserción**: extrae un triángulo y lo reinserta en otra posición del orden de pintado.
+- **un_punto**: un solo punto de corte; se conserva `p1[:c]` y se completa con el orden de `p2`.
+- **dos_puntos**: OX clásico de dos puntos de corte (el segmento intermedio se conserva).
+- **uniforme**: Uniform Order Crossover (UOX) — una máscara aleatoria decide qué posiciones se
+  heredan directamente de un padre; el resto se completa en el orden del otro padre.
 
-Como el renderizado sigue el algoritmo del pintor (los triángulos se dibujan en el orden del
-cromosoma, unos sobre otros), estos operadores sí tienen un efecto real: cambian qué triángulo
-queda encima de cuál. Pero es importante ser honestos: cuando los triángulos no se solapan en
-la imagen, el efecto en los píxeles resultantes es nulo. Por eso se presentan en la interfaz
-como "operadores de reordenamiento de capas" y no como mutaciones de color o forma — el único
-operador que explora genuinamente el espacio de posición y color es la mutación heurística
-(perturbación gaussiana), que es la que queda como valor por defecto.
+## Por qué los operadores de mutación aquí sí son literales (a diferencia de la versión de imagen)
+
+En la versión anterior (triángulos), intercambio/desplazamiento/inserción eran operadores de
+permutación aplicados por necesidad sobre un cromosoma que no era una permutación real (una
+lista de triángulos con genes de color/posición), así que solo tenía sentido reinterpretarlos
+como "reordenar el orden de pintado" — con efecto nulo en píxeles cuando las figuras no se
+solapaban.
+
+En TSP el cromosoma **es** una permutación, así que estos operadores aplican tal como se
+enseñan, sin adaptación forzada:
+
+- **Intercambio (swap)**: intercambia dos ciudades de posición en la ruta.
+- **Desplazamiento**: toma un segmento contiguo de ciudades y lo mueve a otra posición de la ruta.
+- **Inserción**: extrae una ciudad y la reinserta en otra posición.
+- **Heurística**: en vez de una mutación puramente aleatoria, prueba varios intercambios
+  candidatos y se queda con el que más reduce la distancia total (una forma simplificada de
+  búsqueda local tipo 2-opt), aprovechando información del problema — de ahí el nombre
+  "heurística".
+
+## Rendimiento medido
+
+Con población 60, 30 ciudades: la distancia baja de ~12.8 a ~4.8 (mejora de ~62%) en 400
+generaciones, con convergencia visible desde la generación ~80 y **menos de 1 segundo** de
+tiempo total en CPU local. Esto es órdenes de magnitud más rápido que el enfoque de imagen
+(39 segundos para 800 generaciones con resultados visualmente pobres), y viable en el CPU
+compartida del plan gratuito de Render sin comprometer la experiencia de la demo en clase.
 
 ## Comparación de técnicas
 
 (completar tras correr el laboratorio con semilla fija y registrar generación de convergencia
 por cada combinación de selección/cruce/mutación)
 
-| Selección | Cruce | Mutación | Generación de convergencia | Aptitud final |
+| Selección | Cruce | Mutación | Generación de convergencia | Distancia final |
 |---|---|---|---|---|
 | | | | | |

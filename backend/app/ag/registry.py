@@ -30,7 +30,4 @@ def nombres_disponibles() -> dict:
         "seleccion": sorted(REGISTRO_SELECCION.keys()),
         "cruce": sorted(REGISTRO_CRUCE.keys()),
         "mutacion": sorted(REGISTRO_MUTACION.keys()),
-        "operador_reordenamiento": sorted(
-            ["intercambio", "desplazamiento", "insercion"]
-        ),
     }

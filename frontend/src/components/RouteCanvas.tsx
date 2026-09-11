@@ -1,19 +1,20 @@
 import { useEffect, useRef, type RefObject } from 'react'
-import type { Triangulo } from '../lib/tipos'
-import { dibujarTriangulos } from '../lib/canvas'
+import type { Ciudad } from '../lib/tipos'
+import { dibujarRuta } from '../lib/canvas'
 
-interface GenomeCanvasProps {
-  genomaRef: RefObject<Triangulo[] | null>
+interface RouteCanvasProps {
+  ciudadesRef: RefObject<Ciudad[]>
+  rutaRef: RefObject<number[] | null>
 }
 
 /**
- * Canvas 2D que dibuja el mejor genoma de la generación actual.
- * Recibe una ref (no estado) para no forzar re-renders de React en cada generación;
- * usa su propio loop de requestAnimationFrame y solo redibuja cuando el genoma cambió.
+ * Canvas 2D que dibuja el mapa de ciudades y la mejor ruta de la generación actual.
+ * Recibe refs (no estado) para no forzar re-renders de React en cada generación;
+ * usa su propio loop de requestAnimationFrame y solo redibuja cuando la ruta cambió.
  */
-export function GenomeCanvas({ genomaRef }: GenomeCanvasProps) {
+export function RouteCanvas({ ciudadesRef, rutaRef }: RouteCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const ultimoDibujadoRef = useRef<Triangulo[] | null>(null)
+  const ultimaDibujadaRef = useRef<number[] | null>(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -33,7 +34,7 @@ export function GenomeCanvas({ genomaRef }: GenomeCanvasProps) {
         canvas!.width = ancho
         canvas!.height = alto
       }
-      ultimoDibujadoRef.current = null // fuerza redibujo tras resize
+      ultimaDibujadaRef.current = null // fuerza redibujo tras resize
     }
 
     const resizeObserver = new ResizeObserver(redimensionar)
@@ -43,17 +44,15 @@ export function GenomeCanvas({ genomaRef }: GenomeCanvasProps) {
     let frameId: number
 
     function loop() {
-      const actual = genomaRef.current
-      if (actual !== ultimoDibujadoRef.current) {
-        ultimoDibujadoRef.current = actual
+      const actual = rutaRef.current
+      if (actual !== ultimaDibujadaRef.current) {
+        ultimaDibujadaRef.current = actual
         // Truco de escalado: tras dimensionar el canvas, permite dibujar
         // directamente con coordenadas normalizadas [0,1].
         ctx!.setTransform(canvas!.width, 0, 0, canvas!.height, 0, 0)
-        ctx!.fillStyle = '#000000'
+        ctx!.fillStyle = '#0d1b2a'
         ctx!.fillRect(0, 0, 1, 1)
-        if (actual) {
-          dibujarTriangulos(ctx!, actual)
-        }
+        dibujarRuta(ctx!, ciudadesRef.current ?? [], actual)
       }
       frameId = requestAnimationFrame(loop)
     }
@@ -63,7 +62,7 @@ export function GenomeCanvas({ genomaRef }: GenomeCanvasProps) {
       cancelAnimationFrame(frameId)
       resizeObserver.disconnect()
     }
-  }, [genomaRef])
+  }, [ciudadesRef, rutaRef])
 
   return (
     <div className="canvas-box">

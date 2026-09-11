@@ -20,7 +20,7 @@ class Run:
         self.pausa.set()  # corriendo por defecto
         self.detener_flag = False
         self.historial: list[dict] = []
-        self.ultimo_mejor: float | None = None
+        self.ultima_distancia: float | None = None
         self.task: asyncio.Task | None = None
         self.terminado = False
         self.razon: str | None = None
@@ -68,10 +68,10 @@ class RunManager:
         run = self._runs.get(run_id)
         return run.historial if run else []
 
-    async def ejecutar(self, run: Run, objetivo_arr: np.ndarray, enviar):
+    async def ejecutar(self, run: Run, matriz_distancias: np.ndarray, enviar):
         """Corre el motor y envía un mensaje por generación usando `enviar` (coroutine)."""
         gen = evolucionar(
-            run.params, objetivo_arr, debe_detener=lambda: run.detener_flag
+            run.params, matriz_distancias, debe_detener=lambda: run.detener_flag
         )
         try:
             while True:
@@ -82,16 +82,17 @@ class RunManager:
                     break
 
                 mejora = (
-                    run.ultimo_mejor is None or estado.mejor_aptitud > run.ultimo_mejor
+                    run.ultima_distancia is None
+                    or estado.distancia_mejor < run.ultima_distancia
                 )
                 if mejora:
-                    run.ultimo_mejor = estado.mejor_aptitud
+                    run.ultima_distancia = estado.distancia_mejor
 
                 run.historial.append(
                     {
                         "generacion": estado.generacion,
-                        "mejor": estado.mejor_aptitud,
-                        "promedio": estado.aptitud_promedio,
+                        "mejor": estado.distancia_mejor,
+                        "promedio": estado.distancia_promedio,
                     }
                 )
 
@@ -101,11 +102,14 @@ class RunManager:
                     "mejor_aptitud": estado.mejor_aptitud,
                     "aptitud_promedio": estado.aptitud_promedio,
                     "aptitud_peor": estado.aptitud_peor,
+                    "distancia_mejor": estado.distancia_mejor,
+                    "distancia_promedio": estado.distancia_promedio,
+                    "distancia_peor": estado.distancia_peor,
                     "tiempo_ms": estado.tiempo_ms,
                     "generaciones_sin_mejora": estado.generaciones_sin_mejora,
                 }
                 if mejora:
-                    mensaje["genoma_mejor"] = decodificar(estado.genoma_mejor)
+                    mensaje["ruta_mejor"] = decodificar(estado.ruta_mejor)
 
                 await enviar(mensaje)
 

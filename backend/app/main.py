@@ -1,4 +1,4 @@
-"""Aplicación FastAPI: algoritmo genético de aproximación de imágenes con triángulos."""
+"""Aplicación FastAPI: algoritmo genético para el problema del vendedor viajero (TSP)."""
 from __future__ import annotations
 
 from fastapi import FastAPI
