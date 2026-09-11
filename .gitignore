@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+.vercel/
+*.tsbuildinfo
+npm-debug.log
+
+# Entornos
+.env
+.env.local
+*.local
+
+# Sistema
+.DS_Store
+coverage/

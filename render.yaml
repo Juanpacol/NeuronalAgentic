@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: neuronal-agentic-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    branch: main
+    plan: free
+    autoDeployTrigger: checksPass
+    healthCheckPath: /health
+    envVars:
+      - key: ALLOWED_ORIGINS
+        value: https://tu-frontend.vercel.app
+      - key: MAX_RUNS_CONCURRENTES
+        value: "2"
