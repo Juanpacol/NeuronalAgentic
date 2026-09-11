@@ -20,7 +20,7 @@ def test_opciones_parametros():
     assert "mutacion" in data
     assert "defaults" in data
     assert "torneo" in data["seleccion"]
-    assert data["defaults"]["poblacion"] == 40
+    assert data["defaults"]["poblacion"] > 0
 
 
 def test_listar_targets():

@@ -6,11 +6,11 @@ import type { OpcionesParametros, ParametrosAG } from './tipos'
  * Siempre se intenta primero el fetch real; esto es solo el respaldo.
  */
 export const PARAMETROS_DEFAULT: ParametrosAG = {
-  poblacion: 100,
-  num_triangulos: 100,
-  prob_cruce: 0.8,
-  prob_mutacion: 0.05,
-  elitismo: 2,
+  poblacion: 50,
+  num_triangulos: 110,
+  prob_cruce: 0.7,
+  prob_mutacion: 0.15,
+  elitismo: 3,
   seleccion: 'torneo',
   k_torneo: 3,
   cruce: 'un_punto',
@@ -18,10 +18,10 @@ export const PARAMETROS_DEFAULT: ParametrosAG = {
   mutacion: 'heuristica',
   sigma_mutacion: 0.1,
   criterio_parada: 'generaciones',
-  max_generaciones: 2000,
-  epsilon: 0.0001,
-  paciencia: 100,
-  aptitud_objetivo: 0.95,
+  max_generaciones: 500,
+  epsilon: 0.0005,
+  paciencia: 30,
+  aptitud_objetivo: 0.97,
   resolucion_trabajo: 128,
   seed: 42,
 }
