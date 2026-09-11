@@ -88,6 +88,17 @@
   border-radius: var(--r-lg);
   padding: var(--sp-3) var(--sp-4);
   box-shadow: var(--shadow-card);
+  transition: box-shadow 0.3s var(--ease-ios);
+}
+
+.stats-menu-viva {
+  animation: fitness-pulso 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-menu-viva {
+    animation: none;
+  }
 }
 
 .stats-menu-cabecera {
@@ -278,6 +289,38 @@
   .sidebar,
   .sidebar-backdrop {
     transition: none;
+    animation: none;
+  }
+}
+
+/* ---------- FitnessChart ---------- */
+
+.fitness-chart-card .u-legend {
+  color: var(--label-2);
+  font-size: var(--fs-footnote);
+}
+
+.fitness-chart-card .u-legend th {
+  color: var(--label);
+  font-weight: 500;
+}
+
+.fitness-chart-viva .ui-card {
+  animation: fitness-pulso 2.6s ease-in-out infinite;
+}
+
+@keyframes fitness-pulso {
+  0%,
+  100% {
+    box-shadow: var(--shadow-card);
+  }
+  50% {
+    box-shadow: 0 0 24px color-mix(in srgb, var(--cheshire-gold) 30%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fitness-chart-viva .ui-card {
     animation: none;
   }
 }

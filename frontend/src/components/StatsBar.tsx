@@ -59,7 +59,7 @@ export function StatsBar({ status, stats, inicioMs, maxGeneraciones }: StatsBarP
   const transcurridoMs = inicioMs ? ahora - inicioMs : 0
 
   return (
-    <div className="stats-menu">
+    <div className={status === 'running' ? 'stats-menu stats-menu-viva' : 'stats-menu'}>
       <div className="stats-menu-cabecera">
         <span className={`badge badge-${status}`}>{ETIQUETAS_ESTADO[status]}</span>
         <span className="stats-menu-tiempo">{formatearTiempo(transcurridoMs)}</span>

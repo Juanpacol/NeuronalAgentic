@@ -255,6 +255,7 @@
 .viz-generacion-arco {
   transition: stroke-dashoffset var(--dur-stream) linear;
   will-change: stroke-dashoffset;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--cheshire-gold) 70%, transparent));
 }
 
 .viz-generacion-cifra {

@@ -80,7 +80,7 @@ function App() {
 
       <DietaPanel alimentosRef={alimentosRef} genomaRef={genomaRef} objetivosRef={objetivosRef} />
 
-      <FitnessChart historia={historia} />
+      <FitnessChart historia={historia} activo={status === 'running'} />
 
       {ajustesAbiertos && (
         <div className="sidebar-backdrop" onClick={() => setAjustesAbiertos(false)} />

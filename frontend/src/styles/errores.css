@@ -98,6 +98,30 @@
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
+  transition: transform 0.15s var(--ease-ios, ease), filter 0.15s var(--ease-ios, ease),
+    box-shadow 0.15s var(--ease-ios, ease);
+}
+
+.boton:hover:not(:disabled) {
+  filter: brightness(1.14);
+}
+
+.boton-filled:hover:not(:disabled) {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.boton:active:not(:disabled) {
+  transform: scale(0.96);
+  filter: brightness(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boton {
+    transition: none;
+  }
+  .boton:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 .boton-filled {

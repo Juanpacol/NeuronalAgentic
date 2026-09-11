@@ -21,7 +21,7 @@ export function GenerationCounter({ generacion, maxGeneraciones }: GenerationCou
             cy="48"
             r={RADIO}
             fill="none"
-            stroke="var(--ios-blue)"
+            stroke="var(--cheshire-gold)"
             strokeWidth="4"
           />
           <circle
@@ -30,7 +30,7 @@ export function GenerationCounter({ generacion, maxGeneraciones }: GenerationCou
             cy="48"
             r={RADIO}
             fill="none"
-            stroke="var(--ios-blue)"
+            stroke="var(--cheshire-gold)"
             strokeWidth="4"
             strokeLinecap="round"
             strokeDasharray={CIRCUNFERENCIA}
