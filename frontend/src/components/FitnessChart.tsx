@@ -20,7 +20,9 @@ const GRILLA = 'rgba(84, 84, 88, 0.35)'
  * de tener `bbox` calculado — en ese caso cae a un color sólido.
  */
 function degradadoOro(u: uPlot): CanvasGradient | string {
-  if (!u.bbox || u.bbox.height <= 0) return 'rgba(246, 211, 131, 0.2)'
+  if (!u.bbox || !(u.bbox.height > 0) || !Number.isFinite(u.bbox.top)) {
+    return 'rgba(246, 211, 131, 0.2)'
+  }
   const { ctx } = u
   const gradiente = ctx.createLinearGradient(0, u.bbox.top, 0, u.bbox.top + u.bbox.height)
   gradiente.addColorStop(0, 'rgba(246, 211, 131, 0.35)')
@@ -77,7 +79,12 @@ export function FitnessChart({ historia, activo }: FitnessChartProps) {
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (!entry) return
-      plot.setSize({ width: entry.contentRect.width, height: 260 })
+      // Ancho 0 pasa durante transiciones de layout (p. ej. el sidebar
+      // cerrándose): con eso uPlot calcula escalas no finitas y explota al
+      // dibujar. Se ignora ese frame transitorio en vez de pasárselo.
+      const width = entry.contentRect.width
+      if (width <= 0) return
+      plot.setSize({ width, height: 260 })
     })
     resizeObserver.observe(contenedor)
 
