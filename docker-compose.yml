@@ -24,7 +24,7 @@ services:
       - "${FRONTEND_PORT:-5173}:5173"
     environment:
       VITE_API_URL: http://localhost:${BACKEND_PORT:-8000}
-      VITE_WS_URL: ws://localhost:${BACKEND_PORT:-8000}/ws
+      VITE_WS_URL: ws://localhost:${BACKEND_PORT:-8000}/ws/evolucion
     volumes:
       - ./frontend:/app
       - /app/node_modules

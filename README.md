@@ -98,7 +98,7 @@ MAX_RUNS_CONCURRENTES=2
 `frontend/.env.example`:
 ```
 VITE_API_URL=http://localhost:8000
-VITE_WS_URL=ws://localhost:8000/ws
+VITE_WS_URL=ws://localhost:8000/ws/evolucion
 ```
 
 ## Despliegue
