@@ -1,0 +1,209 @@
+/* Visualizaciones que ambientan la interfaz al algoritmo genético.
+ * Todas se actualizan al ritmo del volcado de estado (~8Hz), por eso las
+ * transiciones usan --dur-stream (140ms): apenas por encima del intervalo de
+ * 120ms, para que una transición nunca quede a medias cuando llega la siguiente.
+ */
+
+/* ---------- ActivityRings ---------- */
+
+.viz-anillos {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+}
+
+.viz-anillos-svg {
+  width: 200px;
+  height: 200px;
+  flex: none;
+}
+
+.viz-anillo-pista {
+  opacity: 0.15;
+}
+
+.viz-anillo-arco {
+  transition: stroke-dashoffset var(--dur-stream) linear, stroke var(--dur-stream) linear;
+  will-change: stroke-dashoffset;
+}
+
+/* Pasarse de la meta es un fallo, no un logro: el arco se queda en 100% y el
+   anillo avisa en rojo. No se envuelve como en las apps de actividad. */
+.viz-anillo-exceso {
+  animation: viz-pulso 1.6s ease-in-out infinite;
+}
+
+@keyframes viz-pulso {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.viz-anillos-leyenda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.viz-anillos-item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  font-size: var(--fs-subheadline);
+}
+
+.viz-anillos-punto {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-full);
+  flex: none;
+  align-self: center;
+}
+
+.viz-anillos-etiqueta {
+  color: var(--label);
+  flex: 1;
+  min-width: 0;
+}
+
+.viz-anillos-cifra {
+  color: var(--label-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.viz-anillos-exceso {
+  color: var(--ios-red);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- ChromosomeStrip ---------- */
+
+.viz-cromosoma {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 72px;
+  padding-top: var(--sp-2);
+}
+
+.viz-cromosoma-celda {
+  flex: 1;
+  min-width: 0;
+  border-radius: 2px 2px 0 0;
+  transition: height var(--dur-stream) linear, background var(--dur-stream) linear;
+  will-change: height;
+  /* Un gen en cero sigue ocupando su carril: se ve el hueco, que es información */
+  min-height: 2px;
+  background: var(--celda-color, var(--ios-g3));
+}
+
+.viz-cromosoma-vacia {
+  background: var(--separator);
+}
+
+.viz-cromosoma-pie {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-caption);
+  color: var(--label-2);
+  margin-top: var(--sp-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viz-cromosoma-celda,
+  .viz-anillo-arco {
+    transition: none;
+  }
+
+  .viz-anillo-exceso {
+    animation: none;
+  }
+}
+
+/* ---------- PopulationGrid ---------- */
+
+.viz-poblacion {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 10), 1fr);
+  gap: 3px;
+}
+
+.viz-poblacion-celda {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  transition: background var(--dur-stream) linear;
+}
+
+.viz-poblacion-pie {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-caption);
+  color: var(--label-2);
+  margin-top: var(--sp-3);
+}
+
+.viz-poblacion-escala {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--ios-green) 8%, var(--bg-3)),
+    var(--ios-green)
+  );
+}
+
+/* ---------- GenerationCounter ---------- */
+
+.viz-generacion {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.viz-generacion-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.viz-generacion-pista {
+  opacity: 0.15;
+}
+
+.viz-generacion-arco {
+  transition: stroke-dashoffset var(--dur-stream) linear;
+  will-change: stroke-dashoffset;
+}
+
+.viz-generacion-cifra {
+  position: relative;
+  font-size: var(--fs-title1);
+  font-weight: var(--fw-title1);
+  letter-spacing: var(--ls-title1);
+  color: var(--label);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.viz-generacion-label {
+  position: relative;
+  font-size: var(--fs-caption);
+  color: var(--label-2);
+  margin-top: 2px;
+}

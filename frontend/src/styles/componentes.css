@@ -1,0 +1,449 @@
+/* Componentes del sistema de diseño iOS.
+ * Ningún color literal aquí: todo sale de tokens.css.
+ * Las reglas base de .boton/.boton-filled/.boton-tinted/.boton-plain viven en
+ * errores.css (se escribieron antes y la tarjeta de error depende de ellas);
+ * aquí solo se añade lo que falta, sin redefinirlas.
+ */
+
+/* ---------- Card ---------- */
+
+.ui-card {
+  background: var(--bg-2);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.ui-card + .ui-card {
+  margin-top: var(--sp-5);
+}
+
+.ui-card-titulo {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4) var(--sp-2);
+  font-size: var(--fs-footnote);
+  font-weight: var(--fw-footnote);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--label-2);
+}
+
+.ui-card-cuerpo {
+  padding: var(--sp-4);
+}
+
+.ui-card-cuerpo-plano {
+  padding: 0;
+}
+
+.ui-card-footer {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-4) var(--sp-3);
+  font-size: var(--fs-footnote);
+  color: var(--label-2);
+}
+
+/* ---------- ListRow ---------- */
+
+.ui-listrow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--sp-8);
+  padding: var(--sp-2) var(--sp-4);
+  width: 100%;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--fs-body);
+  color: var(--label);
+  text-align: left;
+}
+
+.ui-listrow-clicable {
+  cursor: pointer;
+}
+
+.ui-listrow-clicable:hover {
+  background: color-mix(in srgb, var(--label) 4%, transparent);
+}
+
+/* Separador con sangría de 16px, como las listas agrupadas de iOS */
+.ui-listrow:not(:last-child) {
+  box-shadow: inset 0 -0.5px 0 0 var(--separator);
+}
+
+.ui-listrow-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-listrow-value {
+  color: var(--label-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-listrow-accessory {
+  color: var(--label-3);
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- SegmentedControl ---------- */
+
+.ui-segmented {
+  position: relative;
+  display: flex;
+  padding: 2px;
+  background: var(--fill-control);
+  border-radius: 9px;
+  isolation: isolate;
+}
+
+.ui-segmented-thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / var(--n));
+  background: var(--fill-thumb);
+  border-radius: 7px;
+  box-shadow: var(--shadow-thumb);
+  transform: translateX(calc(var(--i) * 100%));
+  transition: transform 0.25s var(--ease-ios);
+  z-index: -1;
+}
+
+.ui-segmented-opcion {
+  flex: 1;
+  min-width: 0;
+  padding: 6px var(--sp-2);
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--fs-subheadline);
+  font-weight: var(--fw-subheadline);
+  color: var(--label);
+  cursor: pointer;
+  border-radius: 7px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-segmented-opcion[aria-checked='true'] {
+  font-weight: 600;
+}
+
+.ui-segmented-opcion:focus-visible {
+  outline: 2px solid var(--ios-blue);
+  outline-offset: 1px;
+}
+
+.ui-segmented[aria-disabled='true'] {
+  opacity: 0.5;
+}
+
+.ui-segmented[aria-disabled='true'] .ui-segmented-opcion {
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-segmented-thumb {
+    transition: none;
+  }
+}
+
+/* ---------- Slider ---------- */
+
+.ui-slider {
+  display: block;
+}
+
+.ui-slider-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-1);
+}
+
+.ui-slider-label {
+  font-size: var(--fs-subheadline);
+  color: var(--label);
+}
+
+.ui-slider-valor {
+  font-size: var(--fs-subheadline);
+  color: var(--label-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-slider-pista {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ui-slider-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--fill-control);
+  outline: none;
+  margin: 0;
+  /* El relleno azul a la izquierda del pulgar se pinta con un degradado duro
+     posicionado desde el porcentaje actual, calculado en el componente. */
+  background-image: linear-gradient(
+    to right,
+    var(--ios-blue) 0%,
+    var(--ios-blue) calc(var(--pct) * 100%),
+    transparent calc(var(--pct) * 100%)
+  );
+}
+
+.ui-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  background: var(--knob);
+  box-shadow: var(--shadow-thumb);
+  cursor: grab;
+  border: none;
+}
+
+.ui-slider-input::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  background: var(--knob);
+  box-shadow: var(--shadow-thumb);
+  cursor: grab;
+  border: none;
+}
+
+.ui-slider-input:disabled {
+  opacity: 0.5;
+}
+
+.ui-slider-input:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+}
+
+/* ---------- Stepper ---------- */
+
+.ui-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--fill-control);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.ui-stepper-boton {
+  width: var(--sp-8);
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--label);
+  font-size: var(--fs-title2);
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-stepper-boton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ui-stepper-boton:not(:disabled):active {
+  background: color-mix(in srgb, var(--label) 8%, transparent);
+}
+
+.ui-stepper-divisor {
+  width: 1px;
+  background: color-mix(in srgb, var(--label) 12%, transparent);
+  align-self: center;
+  height: 60%;
+}
+
+.ui-stepper-campo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: var(--sp-8);
+}
+
+.ui-stepper-valor {
+  font-variant-numeric: tabular-nums;
+  color: var(--label-2);
+  min-width: 3ch;
+  text-align: right;
+}
+
+/* ---------- Toggle ---------- */
+
+.ui-toggle {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+  flex: none;
+}
+
+.ui-toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.ui-toggle-pista {
+  position: absolute;
+  inset: 0;
+  background: var(--fill-control);
+  border-radius: var(--r-full);
+  transition: background 0.2s var(--ease-ios);
+  pointer-events: none;
+}
+
+.ui-toggle-pista::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: var(--r-full);
+  background: var(--knob);
+  box-shadow: var(--shadow-thumb);
+  transition: transform 0.2s var(--ease-ios);
+}
+
+.ui-toggle-input:checked + .ui-toggle-pista {
+  background: var(--ios-green);
+}
+
+.ui-toggle-input:checked + .ui-toggle-pista::after {
+  transform: translateX(20px);
+}
+
+.ui-toggle-input:focus-visible + .ui-toggle-pista {
+  outline: 2px solid var(--ios-blue);
+  outline-offset: 2px;
+}
+
+.ui-toggle-input:disabled {
+  cursor: not-allowed;
+}
+
+.ui-toggle-input:disabled + .ui-toggle-pista {
+  opacity: 0.5;
+}
+
+/* ---------- Button (complementa las reglas base de errores.css) ---------- */
+
+.boton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.boton-destructive.boton-filled {
+  background: var(--ios-red);
+  color: var(--on-accent);
+}
+
+.boton-destructive.boton-tinted {
+  background: color-mix(in srgb, var(--ios-red) 15%, transparent);
+  color: var(--ios-red);
+}
+
+.boton-destructive.boton-plain {
+  color: var(--ios-red);
+}
+
+.boton-bloque {
+  width: 100%;
+}
+
+/* ---------- StatTile ---------- */
+
+.ui-stattile {
+  background: var(--bg-2);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  min-width: 0;
+  transition: background 0.2s var(--ease-ios);
+}
+
+.ui-stattile-valor {
+  font-size: var(--fs-title2);
+  font-weight: var(--fw-title2);
+  letter-spacing: var(--ls-title2);
+  color: var(--label);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-stattile-unidad {
+  font-size: var(--fs-footnote);
+  font-weight: var(--fw-footnote);
+  color: var(--label-2);
+  margin-left: 2px;
+}
+
+.ui-stattile-label {
+  font-size: var(--fs-caption);
+  color: var(--label-2);
+  margin-top: 2px;
+}
+
+.ui-stattile-azul .ui-stattile-valor {
+  color: var(--ios-blue);
+}
+
+.ui-stattile-verde .ui-stattile-valor {
+  color: var(--ios-green);
+}
+
+.ui-stattile-rojo .ui-stattile-valor {
+  color: var(--ios-red);
+}
+
+.ui-stattile-naranja .ui-stattile-valor {
+  color: var(--ios-orange);
+}
+
+/* Destello al encontrar un nuevo mejor individuo (200ms, sin confeti) */
+.ui-stattile-destello {
+  animation: ui-destello 200ms var(--ease-ios);
+}
+
+@keyframes ui-destello {
+  from {
+    background: color-mix(in srgb, var(--ios-green) 28%, var(--bg-2));
+  }
+  to {
+    background: var(--bg-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-stattile-destello {
+    animation: none;
+  }
+}
