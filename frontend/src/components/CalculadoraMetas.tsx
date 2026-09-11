@@ -52,7 +52,9 @@ export function CalculadoraMetas({ disabled, onAplicar }: CalculadoraMetasProps)
   return (
     <Card
       titulo="Calculadora de metas (si no sabés qué poner)"
-      footer="Estimación a partir de tu IMC y gasto energético (Mifflin-St Jeor). Ajustá los sliders de arriba después si querés afinar."
+      subtitulo="Completá tus datos y el gato calcula las metas por vos."
+      footer="Estimación a partir de tu IMC y gasto energético (Mifflin-St Jeor). Ajustá los sliders de abajo después si querés afinar."
+      acento="rosa"
     >
       <div className="control-panel-campo">
         <span className="ui-slider-label">Sexo</span>
@@ -116,6 +118,7 @@ export function CalculadoraMetas({ disabled, onAplicar }: CalculadoraMetasProps)
 
       <Button
         variant="tinted"
+        tono="rosa"
         bloque
         disabled={disabled}
         onClick={() =>

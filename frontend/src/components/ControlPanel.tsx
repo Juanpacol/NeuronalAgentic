@@ -62,7 +62,11 @@ export function ControlPanel({
         onAplicar={(metas) => onChange({ ...params, ...metas })}
       />
 
-      <Card titulo="Metas nutricionales y presupuesto">
+      <Card
+        titulo="Metas nutricionales y presupuesto"
+        subtitulo="Cuánta energía, macros y plata por día tiene que cubrir la dieta."
+        acento="verde"
+      >
         <div className="control-panel-fila">
           <Slider
             label="Calorías"
@@ -127,7 +131,11 @@ export function ControlPanel({
         </div>
       </Card>
 
-      <Card titulo="Población y operadores">
+      <Card
+        titulo="Población y operadores"
+        subtitulo="Cómo explora y combina soluciones el algoritmo genético."
+        acento="azul"
+      >
         <div className="control-panel-fila">
           <Stepper
             label="Población"
@@ -219,7 +227,11 @@ export function ControlPanel({
         </div>
       </Card>
 
-      <Card titulo="Criterio de parada">
+      <Card
+        titulo="Criterio de parada"
+        subtitulo="Cuándo el algoritmo deja de buscar y entrega la dieta final."
+        acento="naranja"
+      >
         <div className="control-panel-campo">
           <span className="ui-slider-label">Criterio</span>
           <SegmentedControl
@@ -298,13 +310,13 @@ export function ControlPanel({
       </Card>
 
       <div className="button-row">
-        <Button onClick={onIniciar} disabled={!puedeIniciar}>
+        <Button tono="verde" onClick={onIniciar} disabled={!puedeIniciar}>
           Iniciar
         </Button>
-        <Button variant="tinted" onClick={onPausar} disabled={!puedePausar}>
+        <Button variant="tinted" tono="naranja" onClick={onPausar} disabled={!puedePausar}>
           Pausar
         </Button>
-        <Button variant="tinted" onClick={onReanudar} disabled={!puedeReanudar}>
+        <Button variant="tinted" tono="azul" onClick={onReanudar} disabled={!puedeReanudar}>
           Reanudar
         </Button>
         <Button variant="tinted" destructive onClick={onDetener} disabled={!puedeDetener}>

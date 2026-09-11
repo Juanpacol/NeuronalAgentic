@@ -12,6 +12,14 @@
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
+  border-left: 3px solid var(--ios-blue);
+}
+
+.ui-card-subtitulo {
+  margin: -6px 0 var(--sp-2);
+  padding: 0 var(--sp-1);
+  font-size: var(--fs-footnote);
+  color: var(--label-2);
 }
 
 .ui-card + .ui-card {
@@ -376,6 +384,48 @@
 
 .boton-bloque {
   width: 100%;
+}
+
+.boton-tono-verde.boton-filled {
+  background: var(--ios-green);
+  color: var(--on-accent);
+}
+
+.boton-tono-verde.boton-tinted {
+  background: color-mix(in srgb, var(--ios-green) 15%, transparent);
+  color: var(--ios-green);
+}
+
+.boton-tono-verde.boton-plain {
+  color: var(--ios-green);
+}
+
+.boton-tono-naranja.boton-filled {
+  background: var(--ios-orange);
+  color: var(--on-accent);
+}
+
+.boton-tono-naranja.boton-tinted {
+  background: color-mix(in srgb, var(--ios-orange) 15%, transparent);
+  color: var(--ios-orange);
+}
+
+.boton-tono-naranja.boton-plain {
+  color: var(--ios-orange);
+}
+
+.boton-tono-rosa.boton-filled {
+  background: var(--cheshire-pink);
+  color: var(--on-accent);
+}
+
+.boton-tono-rosa.boton-tinted {
+  background: color-mix(in srgb, var(--cheshire-pink) 18%, transparent);
+  color: var(--cheshire-pink);
+}
+
+.boton-tono-rosa.boton-plain {
+  color: var(--cheshire-pink);
 }
 
 /* ---------- TextAnimate (MagicUI, adaptado sin Tailwind) ---------- */
