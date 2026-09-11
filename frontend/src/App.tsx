@@ -5,6 +5,7 @@ import { DietaPanel } from './components/DietaPanel'
 import { FitnessChart } from './components/FitnessChart'
 import { StatsBar } from './components/StatsBar'
 import { ConnectionBanner } from './components/ConnectionBanner'
+import { TextAnimate } from './components/ui/text-animate'
 import { useEvolutionSocket } from './hooks/useEvolutionSocket'
 import { obtenerOpcionesParametros, precalentarBackend, WS_URL } from './lib/api'
 import { OPCIONES_PARAMETROS_FALLBACK } from './lib/defaults'
@@ -56,13 +57,15 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Laboratorio de Algoritmo Genético — Dieta</h1>
+        <TextAnimate as="h1" animation="blurInUp" by="word">
+          Laboratorio de Algoritmo Genético — Dieta
+        </TextAnimate>
         <p>Evolución de un plan de alimentación hacia la mejor meta nutricional al menor costo</p>
       </header>
 
       <ConnectionBanner status={status} mensajeError={mensajeError} onReintentar={handleIniciar} />
 
-      <StatsBar status={status} stats={stats} inicioMs={inicioMs} />
+      <StatsBar status={status} stats={stats} inicioMs={inicioMs} maxGeneraciones={params.max_generaciones} />
 
       <DietaPanel alimentosRef={alimentosRef} genomaRef={genomaRef} objetivosRef={objetivosRef} />
 

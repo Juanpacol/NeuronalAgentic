@@ -1,8 +1,10 @@
+import type { ReactNode } from 'react'
+
 export type TonoStat = 'neutro' | 'azul' | 'verde' | 'rojo' | 'naranja'
 
 interface StatTileProps {
   label: string
-  valor: string | number
+  valor: ReactNode
   unidad?: string
   tono?: TonoStat
   /** Destella en verde 200ms; se usa al encontrar un nuevo mejor individuo. */

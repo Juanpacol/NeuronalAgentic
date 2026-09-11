@@ -1,4 +1,3 @@
-import type { ChangeEvent } from 'react'
 import type {
   CriterioParada,
   Cruce,
@@ -8,6 +7,12 @@ import type {
   ParametrosAG,
   Seleccion,
 } from '../lib/tipos'
+import { Card } from './ui/Card'
+import { Slider } from './ui/Slider'
+import { Stepper } from './ui/Stepper'
+import { SegmentedControl, type OpcionSegmentada } from './ui/SegmentedControl'
+import { Button } from './ui/Button'
+import { ListRow } from './ui/ListRow'
 
 interface ControlPanelProps {
   params: ParametrosAG
@@ -20,7 +25,14 @@ interface ControlPanelProps {
   onDetener: () => void
 }
 
-/** Panel de controles: todos los parámetros del AG + botones de ciclo de vida de la corrida. */
+function comoOpciones<T extends string>(valores: readonly T[]): OpcionSegmentada<T>[] {
+  return valores.map((v) => ({ valor: v, etiqueta: v }))
+}
+
+const FORMATO_COP = (v: number) => `$${v.toLocaleString('es-CO')}`
+const FORMATO_PCT = (v: number) => `${(v * 100).toFixed(0)}%`
+
+/** Panel de controles: metas de la dieta, parámetros del AG y ciclo de vida de la corrida. */
 export function ControlPanel({
   params,
   onChange,
@@ -37,285 +49,261 @@ export function ControlPanel({
     onChange({ ...params, [campo]: valor })
   }
 
-  function numero(e: ChangeEvent<HTMLInputElement>): number {
-    return e.target.valueAsNumber
-  }
-
-  const puedeIniciar =
-    status === 'idle' || status === 'open' || status === 'error'
+  const puedeIniciar = status === 'idle' || status === 'open' || status === 'error'
   const puedePausar = status === 'running'
   const puedeReanudar = status === 'paused'
   const puedeDetener = status === 'running' || status === 'paused'
 
   return (
     <div className="control-panel">
-      <fieldset disabled={deshabilitado}>
-        <legend>Metas nutricionales y presupuesto</legend>
-
-        <label>
-          Calorías objetivo (kcal)
-          <input
-            type="number"
-            min={0}
-            value={params.objetivo_kcal}
-            onChange={(e) => actualizar('objetivo_kcal', numero(e))}
+      <Card titulo="Metas nutricionales y presupuesto">
+        <div className="control-panel-fila">
+          <Slider
+            label="Calorías"
+            min={1000}
+            max={4000}
+            step={50}
+            valor={params.objetivo_kcal}
+            disabled={deshabilitado}
+            formato={(v) => `${v} kcal`}
+            onChange={(v) => actualizar('objetivo_kcal', v)}
           />
-        </label>
-
-        <label>
-          Proteína objetivo (g)
-          <input
-            type="number"
-            min={0}
-            value={params.objetivo_proteina_g}
-            onChange={(e) => actualizar('objetivo_proteina_g', numero(e))}
+          <Slider
+            label="Proteína"
+            min={20}
+            max={200}
+            step={5}
+            valor={params.objetivo_proteina_g}
+            disabled={deshabilitado}
+            formato={(v) => `${v} g`}
+            onChange={(v) => actualizar('objetivo_proteina_g', v)}
           />
-        </label>
-
-        <label>
-          Carbohidratos objetivo (g)
-          <input
-            type="number"
-            min={0}
-            value={params.objetivo_carbohidratos_g}
-            onChange={(e) => actualizar('objetivo_carbohidratos_g', numero(e))}
+          <Slider
+            label="Carbohidratos"
+            min={50}
+            max={500}
+            step={10}
+            valor={params.objetivo_carbohidratos_g}
+            disabled={deshabilitado}
+            formato={(v) => `${v} g`}
+            onChange={(v) => actualizar('objetivo_carbohidratos_g', v)}
           />
-        </label>
-
-        <label>
-          Grasa objetivo (g)
-          <input
-            type="number"
-            min={0}
-            value={params.objetivo_grasa_g}
-            onChange={(e) => actualizar('objetivo_grasa_g', numero(e))}
+          <Slider
+            label="Grasa"
+            min={20}
+            max={200}
+            step={5}
+            valor={params.objetivo_grasa_g}
+            disabled={deshabilitado}
+            formato={(v) => `${v} g`}
+            onChange={(v) => actualizar('objetivo_grasa_g', v)}
           />
-        </label>
-
-        <label>
-          Presupuesto diario (COP)
-          <input
-            type="number"
-            min={0}
-            value={params.presupuesto_cop}
-            onChange={(e) => actualizar('presupuesto_cop', numero(e))}
+          <Slider
+            label="Presupuesto diario"
+            min={2000}
+            max={60000}
+            step={1000}
+            valor={params.presupuesto_cop}
+            disabled={deshabilitado}
+            formato={FORMATO_COP}
+            onChange={(v) => actualizar('presupuesto_cop', v)}
           />
-        </label>
-
-        <label>
-          Peso del costo vs. nutrición ({params.peso_costo.toFixed(2)})
-          <input
-            type="range"
+          <Slider
+            label="Peso del costo vs. nutrición"
             min={0}
             max={1}
             step={0.01}
-            value={params.peso_costo}
-            onChange={(e) => actualizar('peso_costo', numero(e))}
+            valor={params.peso_costo}
+            disabled={deshabilitado}
+            formato={FORMATO_PCT}
+            onChange={(v) => actualizar('peso_costo', v)}
           />
-        </label>
-      </fieldset>
+        </div>
+      </Card>
 
-      <fieldset disabled={deshabilitado}>
-        <legend>Parámetros del algoritmo genético</legend>
-
-        <label>
-          Población
-          <input
-            type="number"
-            min={1}
-            value={params.poblacion}
-            onChange={(e) => actualizar('poblacion', numero(e))}
+      <Card titulo="Población y operadores">
+        <div className="control-panel-fila">
+          <Stepper
+            label="Población"
+            min={10}
+            max={300}
+            paso={10}
+            valor={params.poblacion}
+            disabled={deshabilitado}
+            onChange={(v) => actualizar('poblacion', v)}
           />
-        </label>
-
-        <label>
-          Prob. de cruce ({params.prob_cruce.toFixed(2)})
-          <input
-            type="range"
+          <Stepper
+            label="Elitismo"
+            min={0}
+            max={20}
+            valor={params.elitismo}
+            disabled={deshabilitado}
+            onChange={(v) => actualizar('elitismo', v)}
+          />
+          <Slider
+            label="Prob. de cruce"
             min={0}
             max={1}
             step={0.01}
-            value={params.prob_cruce}
-            onChange={(e) => actualizar('prob_cruce', numero(e))}
+            valor={params.prob_cruce}
+            disabled={deshabilitado}
+            formato={FORMATO_PCT}
+            onChange={(v) => actualizar('prob_cruce', v)}
           />
-        </label>
-
-        <label>
-          Prob. de mutación ({params.prob_mutacion.toFixed(2)})
-          <input
-            type="range"
+          <Slider
+            label="Prob. de mutación"
             min={0}
             max={1}
             step={0.01}
-            value={params.prob_mutacion}
-            onChange={(e) => actualizar('prob_mutacion', numero(e))}
+            valor={params.prob_mutacion}
+            disabled={deshabilitado}
+            formato={FORMATO_PCT}
+            onChange={(v) => actualizar('prob_mutacion', v)}
           />
-        </label>
+        </div>
 
-        <label>
-          Elitismo
-          <input
-            type="number"
-            min={0}
-            value={params.elitismo}
-            onChange={(e) => actualizar('elitismo', numero(e))}
+        <div className="control-panel-campo">
+          <span className="ui-slider-label">Selección</span>
+          <SegmentedControl
+            opciones={comoOpciones(opciones.seleccion)}
+            valor={params.seleccion}
+            disabled={deshabilitado}
+            onChange={(v: Seleccion) => actualizar('seleccion', v)}
           />
-        </label>
-
-        <label>
-          Selección
-          <select
-            value={params.seleccion}
-            onChange={(e) => actualizar('seleccion', e.target.value as Seleccion)}
-          >
-            {opciones.seleccion.map((op) => (
-              <option key={op} value={op}>
-                {op}
-              </option>
-            ))}
-          </select>
-        </label>
-
+        </div>
         {params.seleccion === 'torneo' && (
-          <label>
-            k (torneo)
-            <input
-              type="number"
-              min={2}
-              value={params.k_torneo}
-              onChange={(e) => actualizar('k_torneo', numero(e))}
-            />
-          </label>
+          <Stepper
+            label="k (torneo)"
+            min={2}
+            max={10}
+            valor={params.k_torneo}
+            disabled={deshabilitado}
+            onChange={(v) => actualizar('k_torneo', v)}
+          />
         )}
-
         {params.seleccion === 'heuristica' && (
-          <label>
-            Núm. mejores (truncamiento)
-            <input
-              type="number"
-              min={1}
-              value={params.num_mejores}
-              onChange={(e) => actualizar('num_mejores', numero(e))}
-            />
-          </label>
+          <Stepper
+            label="Núm. mejores (truncamiento)"
+            min={1}
+            max={50}
+            valor={params.num_mejores}
+            disabled={deshabilitado}
+            onChange={(v) => actualizar('num_mejores', v)}
+          />
         )}
 
-        <label>
-          Cruce
-          <select value={params.cruce} onChange={(e) => actualizar('cruce', e.target.value as Cruce)}>
-            {opciones.cruce.map((op) => (
-              <option key={op} value={op}>
-                {op}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="control-panel-campo">
+          <span className="ui-slider-label">Cruce</span>
+          <SegmentedControl
+            opciones={comoOpciones(opciones.cruce)}
+            valor={params.cruce}
+            disabled={deshabilitado}
+            onChange={(v: Cruce) => actualizar('cruce', v)}
+          />
+        </div>
 
-        <label>
-          Mutación
-          <select
-            value={params.mutacion}
-            onChange={(e) => actualizar('mutacion', e.target.value as Mutacion)}
-          >
-            {opciones.mutacion.map((op) => (
-              <option key={op} value={op}>
-                {op}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="control-panel-campo">
+          <span className="ui-slider-label">Mutación</span>
+          <SegmentedControl
+            opciones={comoOpciones(opciones.mutacion)}
+            valor={params.mutacion}
+            disabled={deshabilitado}
+            onChange={(v: Mutacion) => actualizar('mutacion', v)}
+          />
+        </div>
+      </Card>
 
-        <label>
-          Criterio de parada
-          <select
-            value={params.criterio_parada}
-            onChange={(e) => actualizar('criterio_parada', e.target.value as CriterioParada)}
-          >
-            {opciones.criterio_parada.map((op) => (
-              <option key={op} value={op}>
-                {op}
-              </option>
-            ))}
-          </select>
-        </label>
+      <Card titulo="Criterio de parada">
+        <div className="control-panel-campo">
+          <span className="ui-slider-label">Criterio</span>
+          <SegmentedControl
+            opciones={comoOpciones(opciones.criterio_parada)}
+            valor={params.criterio_parada}
+            disabled={deshabilitado}
+            onChange={(v: CriterioParada) => actualizar('criterio_parada', v)}
+          />
+        </div>
 
         {params.criterio_parada === 'generaciones' && (
-          <label>
-            Máx. generaciones
-            <input
-              type="number"
-              min={1}
-              value={params.max_generaciones}
-              onChange={(e) => actualizar('max_generaciones', numero(e))}
-            />
-          </label>
+          <Stepper
+            label="Máx. generaciones"
+            min={10}
+            max={2000}
+            paso={10}
+            valor={params.max_generaciones}
+            disabled={deshabilitado}
+            onChange={(v) => actualizar('max_generaciones', v)}
+          />
         )}
 
         {params.criterio_parada === 'convergencia' && (
-          <>
-            <label>
-              Epsilon
-              <input
-                type="number"
-                min={0}
-                step={0.0001}
-                value={params.epsilon}
-                onChange={(e) => actualizar('epsilon', numero(e))}
-              />
-            </label>
-            <label>
-              Paciencia (generaciones sin mejora)
-              <input
-                type="number"
-                min={1}
-                value={params.paciencia}
-                onChange={(e) => actualizar('paciencia', numero(e))}
-              />
-            </label>
-          </>
+          <div className="control-panel-fila">
+            <Slider
+              label="Epsilon"
+              min={0}
+              max={0.01}
+              step={0.0001}
+              valor={params.epsilon}
+              disabled={deshabilitado}
+              formato={(v) => v.toFixed(4)}
+              onChange={(v) => actualizar('epsilon', v)}
+            />
+            <Stepper
+              label="Paciencia"
+              min={5}
+              max={200}
+              paso={5}
+              valor={params.paciencia}
+              disabled={deshabilitado}
+              onChange={(v) => actualizar('paciencia', v)}
+            />
+          </div>
         )}
 
         {params.criterio_parada === 'objetivo' && (
-          <label>
-            Aptitud objetivo
-            <input
-              type="number"
-              min={0}
-              max={1}
-              step={0.01}
-              value={params.aptitud_objetivo}
-              onChange={(e) => actualizar('aptitud_objetivo', numero(e))}
-            />
-          </label>
+          <Slider
+            label="Aptitud objetivo"
+            min={0}
+            max={1}
+            step={0.01}
+            valor={params.aptitud_objetivo}
+            disabled={deshabilitado}
+            formato={FORMATO_PCT}
+            onChange={(v) => actualizar('aptitud_objetivo', v)}
+          />
         )}
 
-        <label>
-          Seed del AG (opcional)
-          <input
-            type="number"
-            value={params.seed ?? ''}
-            placeholder="aleatoria"
-            onChange={(e) => {
-              const v = e.target.value
-              actualizar('seed', v === '' ? null : Number(v))
-            }}
-          />
-        </label>
-      </fieldset>
+        <ListRow
+          label="Seed del AG"
+          value={
+            <input
+              className="ui-textfield ui-textfield-compacta"
+              type="number"
+              value={params.seed ?? ''}
+              placeholder="aleatoria"
+              disabled={deshabilitado}
+              onChange={(e) => {
+                const v = e.target.value
+                actualizar('seed', v === '' ? null : Number(v))
+              }}
+            />
+          }
+        />
+      </Card>
 
       <div className="button-row">
-        <button type="button" onClick={onIniciar} disabled={!puedeIniciar}>
+        <Button onClick={onIniciar} disabled={!puedeIniciar}>
           Iniciar
-        </button>
-        <button type="button" onClick={onPausar} disabled={!puedePausar}>
+        </Button>
+        <Button variant="tinted" onClick={onPausar} disabled={!puedePausar}>
           Pausar
-        </button>
-        <button type="button" onClick={onReanudar} disabled={!puedeReanudar}>
+        </Button>
+        <Button variant="tinted" onClick={onReanudar} disabled={!puedeReanudar}>
           Reanudar
-        </button>
-        <button type="button" onClick={onDetener} disabled={!puedeDetener}>
+        </Button>
+        <Button variant="tinted" destructive onClick={onDetener} disabled={!puedeDetener}>
           Detener
-        </button>
+        </Button>
       </div>
     </div>
   )

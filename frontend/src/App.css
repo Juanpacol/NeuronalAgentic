@@ -1,62 +1,74 @@
 .app {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 16px;
+  padding: var(--sp-5) var(--sp-4) var(--sp-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
 }
 
 .app-header {
   text-align: center;
-  margin-bottom: 12px;
+  padding-top: var(--sp-3);
 }
 
 .app-header h1 {
-  margin: 0 0 4px;
-  font-size: 1.5rem;
+  margin: 0 0 var(--sp-1);
+  font-size: var(--fs-large-title);
+  font-weight: var(--fw-large-title);
+  letter-spacing: var(--ls-large-title);
 }
 
 .app-header p {
   margin: 0;
-  opacity: 0.7;
+  color: var(--label-2);
+  font-size: var(--fs-subheadline);
 }
 
+/* ---------- Connection banner ---------- */
+
 .connection-banner {
-  padding: 10px 14px;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--bg-2);
 }
 
 .banner-info {
-  background: #2b3a55;
-  color: #d7e3ff;
+  color: var(--ios-blue);
 }
 
 .banner-warning {
-  background: #55432b;
-  color: #ffe9c7;
+  color: var(--ios-orange);
 }
 
 .banner-error {
-  background: #552b2b;
-  color: #ffc7c7;
+  color: var(--ios-red);
 }
 
-.banner-error button {
-  margin-top: 8px;
+.connection-banner p {
+  margin: 0;
+  font-size: var(--fs-subheadline);
+}
+
+.connection-banner button {
+  align-self: flex-start;
 }
 
 .progress-indeterminate {
   height: 4px;
   width: 100%;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
+  background: var(--fill-control);
+  border-radius: var(--r-full);
   overflow: hidden;
-  margin-top: 8px;
 }
 
 .progress-indeterminate-bar {
   height: 100%;
   width: 30%;
-  background: #7aa2ff;
+  background: var(--ios-blue);
   animation: indeterminate 1.2s infinite ease-in-out;
 }
 
@@ -69,64 +81,111 @@
   }
 }
 
-.stats-bar {
+/* ---------- StatsBar: menú de métricas compacto, sin scroll ---------- */
+
+.stats-menu {
+  background: var(--bg-2);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  box-shadow: var(--shadow-card);
+}
+
+.stats-menu-cabecera {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-2);
+}
+
+.stats-menu-tiempo {
+  font-size: var(--fs-footnote);
+  color: var(--label-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-menu-cuerpo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
   flex-wrap: wrap;
-  gap: 16px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(127, 127, 127, 0.1);
-  margin-bottom: 16px;
-  font-size: 0.9rem;
+}
+
+.stats-menu-tiles {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: var(--sp-2);
 }
 
 .badge {
-  padding: 2px 8px;
-  border-radius: 999px;
+  padding: 2px var(--sp-3);
+  border-radius: var(--r-full);
   font-weight: 600;
-  background: #444;
-  color: white;
+  font-size: var(--fs-footnote);
+  background: var(--fill-control);
+  color: var(--label);
 }
 
 .badge-running {
-  background: #2e8b57;
+  background: color-mix(in srgb, var(--ios-green) 22%, transparent);
+  color: var(--ios-green);
 }
 
 .badge-paused {
-  background: #b8860b;
+  background: color-mix(in srgb, var(--ios-orange) 22%, transparent);
+  color: var(--ios-orange);
 }
 
 .badge-error {
-  background: #b22222;
+  background: color-mix(in srgb, var(--ios-red) 22%, transparent);
+  color: var(--ios-red);
 }
 
 .badge-open,
-.badge-idle {
-  background: #555;
+.badge-idle,
+.badge-connecting,
+.badge-waking,
+.badge-reconnecting {
+  background: var(--fill-control);
+  color: var(--label-2);
 }
 
+/* ---------- DietaPanel ---------- */
+
 .dieta-panel {
-  margin-bottom: 16px;
-  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
 }
 
 .dieta-panel-vacio {
-  padding: 24px;
+  padding: var(--sp-7) var(--sp-4);
   text-align: center;
-  opacity: 0.7;
+  color: var(--label-2);
+}
+
+.dieta-tabla-wrap {
+  overflow-x: auto;
 }
 
 .dieta-tabla {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--fs-footnote);
 }
 
-.dieta-tabla th,
-.dieta-tabla td {
-  padding: 6px 10px;
+.dieta-tabla th {
   text-align: right;
-  border-bottom: 1px solid rgba(127, 127, 127, 0.25);
+  color: var(--label-2);
+  font-weight: 500;
+  padding: var(--sp-1) var(--sp-2);
+}
+
+.dieta-tabla td {
+  padding: 6px var(--sp-2);
+  text-align: right;
+  box-shadow: inset 0 -0.5px 0 0 var(--separator);
 }
 
 .dieta-tabla th:first-child,
@@ -135,52 +194,54 @@
 }
 
 .dieta-costo-total {
-  margin-top: 8px;
+  margin: var(--sp-2) 0 0;
+  font-size: var(--fs-subheadline);
   font-weight: 600;
+  color: var(--label);
 }
 
-.fitness-chart {
-  width: 100%;
-  margin-bottom: 16px;
-}
+/* ---------- ControlPanel ---------- */
 
-.control-panel fieldset {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px 20px;
-  border: 1px solid rgba(127, 127, 127, 0.3);
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.control-panel label {
+.control-panel {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 0.85rem;
+  gap: var(--sp-4);
 }
 
-.control-panel .checkbox-label {
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
+.control-panel .ui-card-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.control-panel-fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--sp-4);
+}
+
+.control-panel-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
 }
 
 .button-row {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
 }
 
-.button-row button {
-  padding: 8px 16px;
+.button-row .boton {
+  flex: 1;
+  min-width: 110px;
 }
 
 button {
   cursor: pointer;
+  font-family: inherit;
 }
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
 }

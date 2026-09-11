@@ -378,6 +378,57 @@
   width: 100%;
 }
 
+/* ---------- TextAnimate (MagicUI, adaptado sin Tailwind) ---------- */
+
+.ui-textanimate {
+  margin: 0;
+}
+
+.ui-textanimate-segment {
+  display: inline-block;
+  white-space: pre;
+}
+
+.ui-textanimate-line {
+  display: block;
+}
+
+/* ---------- NumberTicker (MagicUI, adaptado sin Tailwind) ---------- */
+
+.ui-numberticker {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- TextField ---------- */
+
+.ui-textfield {
+  width: 100%;
+  min-height: var(--sp-8);
+  padding: 0 var(--sp-3);
+  border: none;
+  border-radius: var(--r-sm);
+  background: var(--fill-control);
+  color: var(--label);
+  font-family: inherit;
+  font-size: var(--fs-body);
+}
+
+.ui-textfield::placeholder {
+  color: var(--label-3);
+}
+
+.ui-textfield:disabled {
+  opacity: 0.5;
+}
+
+.ui-textfield-compacta {
+  width: 110px;
+  min-height: 32px;
+  text-align: right;
+}
+
 /* ---------- StatTile ---------- */
 
 .ui-stattile {

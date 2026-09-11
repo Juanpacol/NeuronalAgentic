@@ -1,41 +1,40 @@
 /* Tokens del sistema de diseño, inspirados en iOS.
  *
- * Regla: todos los tokens se definen en :root y se sobrescriben en UN SOLO
- * bloque @media (prefers-color-scheme: dark). Ningún componente define reglas
- * de modo oscuro por su cuenta; si un color cambia con el tema, se resuelve
- * aquí y el componente solo consume la variable.
+ * Tema fijo: negro puro (no sigue prefers-color-scheme). El laboratorio se
+ * diseñó para verse siempre en modo oscuro, así que los valores que antes
+ * vivían en @media (prefers-color-scheme: dark) ahora son la única paleta.
  */
 
 :root {
-  /* ---- Paleta del sistema (modo claro) ---- */
-  --ios-blue: #007aff;
-  --ios-green: #34c759;
-  --ios-red: #ff3b30;
-  --ios-orange: #ff9500;
-  --ios-indigo: #5856d6;
+  color-scheme: dark;
+
+  /* ---- Paleta del sistema ---- */
+  --ios-blue: #0a84ff;
+  --ios-green: #30d158;
+  --ios-red: #ff453a;
+  --ios-orange: #ff9f0a;
+  --ios-indigo: #5e5ce6;
 
   /* Rampa de grises: g1 es el más oscuro, g6 el más claro */
   --ios-g1: #8e8e93;
-  --ios-g2: #aeaeb2;
-  --ios-g3: #c7c7cc;
-  --ios-g4: #d1d1d6;
-  --ios-g5: #e5e5ea;
-  --ios-g6: #f2f2f7;
+  --ios-g2: #636366;
+  --ios-g3: #48484a;
+  --ios-g4: #3a3a3c;
+  --ios-g5: #2c2c2e;
+  --ios-g6: #1c1c1e;
 
   /* ---- Colores semánticos ---- */
-  --label: #000000;
-  --label-2: rgba(60, 60, 67, 0.6);
-  --label-3: rgba(60, 60, 67, 0.3);
-  --bg: #f2f2f7;
-  --bg-2: #ffffff;
-  --bg-3: #ffffff;
-  --separator: rgba(60, 60, 67, 0.29);
+  --label: #ffffff;
+  --label-2: rgba(235, 235, 245, 0.6);
+  --label-3: rgba(235, 235, 245, 0.3);
+  --bg: #000000;
+  --bg-2: #1c1c1e;
+  --bg-3: #2c2c2e;
+  --separator: rgba(84, 84, 88, 0.65);
 
-  /* Relleno de controles: pista de segmented/stepper y su pastilla móvil.
-     En claro la pastilla es más clara que la pista; en oscuro también, por eso
-     son dos tokens y no se derivan de --bg-2 (que en oscuro es más oscuro). */
+  /* Relleno de controles: pista de segmented/stepper y su pastilla móvil. */
   --fill-control: var(--ios-g5);
-  --fill-thumb: #ffffff;
+  --fill-thumb: #636366;
 
   /* Estos dos NO cambian con el tema, y por eso no se repiten en el bloque
      oscuro: en iOS la perilla física (pulgar del slider, perilla del toggle)
@@ -92,46 +91,15 @@
   --fs-caption: 0.75rem;
   --fw-caption: 400;
 
-  /* ---- Sombras ---- */
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
-  --shadow-thumb: 0 1px 1px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.12);
+  /* ---- Sombras ----
+     iOS no usa sombras en modo oscuro: la jerarquía se expresa elevando el
+     fondo de la superficie, no proyectando sombra. */
+  --shadow-card: none;
+  --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.5);
 
   /* ---- Animación ---- */
   /* 140ms: apenas por encima del volcado de estado a ~8Hz (120ms), para que
      las transiciones nunca se encolen unas sobre otras. */
   --dur-stream: 140ms;
   --ease-ios: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ios-blue: #0a84ff;
-    --ios-green: #30d158;
-    --ios-red: #ff453a;
-    --ios-orange: #ff9f0a;
-    --ios-indigo: #5e5ce6;
-
-    --ios-g1: #8e8e93;
-    --ios-g2: #636366;
-    --ios-g3: #48484a;
-    --ios-g4: #3a3a3c;
-    --ios-g5: #2c2c2e;
-    --ios-g6: #1c1c1e;
-
-    --label: #ffffff;
-    --label-2: rgba(235, 235, 245, 0.6);
-    --label-3: rgba(235, 235, 245, 0.3);
-    --bg: #000000;
-    --bg-2: #1c1c1e;
-    --bg-3: #2c2c2e;
-    --separator: rgba(84, 84, 88, 0.65);
-
-    --fill-control: var(--ios-g5);
-    --fill-thumb: #636366;
-
-    /* iOS no usa sombras en modo oscuro: la jerarquía se expresa elevando el
-       fondo de la superficie, no proyectando sombra. */
-    --shadow-card: none;
-    --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.5);
-  }
 }
