@@ -210,10 +210,6 @@
   flex: none;
 }
 
-.dieta-descarga {
-  margin-top: var(--sp-3);
-}
-
 .dieta-tabla-wrap {
   overflow-x: auto;
 }

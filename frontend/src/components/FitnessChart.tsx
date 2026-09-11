@@ -3,12 +3,12 @@ import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 import type { PuntoHistoria } from '../lib/tipos'
 import { Card } from './ui/Card'
-import { Button } from './ui/Button'
-import { descargarCanvasComoPng } from '../lib/exportar'
 
 interface FitnessChartProps {
   historia: PuntoHistoria[]
   activo?: boolean
+  /** Se llama con la instancia de uPlot al montar, para exportarla (p. ej. a PDF) desde el padre. */
+  onPlotListo?: (plot: uPlot | null) => void
 }
 
 const ORO = '#f6d383'
@@ -62,7 +62,7 @@ const OPCIONES_BASE: Omit<uPlot.Options, 'width' | 'height'> = {
  * degradado bajo la mejor línea; antes usaba el tema claro por defecto de
  * uPlot sobre el fondo negro de la app, casi ilegible.
  */
-export function FitnessChart({ historia, activo }: FitnessChartProps) {
+export function FitnessChart({ historia, activo, onPlotListo }: FitnessChartProps) {
   const contenedorRef = useRef<HTMLDivElement | null>(null)
   const plotRef = useRef<uPlot | null>(null)
 
@@ -77,6 +77,7 @@ export function FitnessChart({ historia, activo }: FitnessChartProps) {
       contenedor,
     )
     plotRef.current = plot
+    onPlotListo?.(plot)
 
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0]
@@ -94,7 +95,9 @@ export function FitnessChart({ historia, activo }: FitnessChartProps) {
       resizeObserver.disconnect()
       plot.destroy()
       plotRef.current = null
+      onPlotListo?.(null)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -106,11 +109,6 @@ export function FitnessChart({ historia, activo }: FitnessChartProps) {
     plot.setData([xs, mejor, promedio])
   }, [historia])
 
-  function handleDescargar() {
-    const canvas = plotRef.current?.ctx.canvas
-    if (canvas) descargarCanvasComoPng(canvas, 'the-cheshire-diet-aptitud.png')
-  }
-
   return (
     <Card
       titulo="Evolución de la aptitud"
@@ -119,11 +117,6 @@ export function FitnessChart({ historia, activo }: FitnessChartProps) {
       className={activo ? 'fitness-chart-card fitness-chart-viva' : 'fitness-chart-card'}
     >
       <div ref={contenedorRef} className="fitness-chart" />
-      <div className="dieta-descarga">
-        <Button variant="tinted" tono="rosa" onClick={handleDescargar} disabled={historia.length === 0}>
-          Descargar gráfica (PNG)
-        </Button>
-      </div>
     </Card>
   )
 }

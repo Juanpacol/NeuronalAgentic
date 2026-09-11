@@ -5,8 +5,7 @@ import { ActivityRings, type AnilloMacro } from './viz/ActivityRings'
 import { PrioridadAlimentos, type FilaPrioridad } from './viz/PrioridadAlimentos'
 import { CheshireGrin } from './viz/CheshireGrin'
 import { colorCategoria, CATEGORIA_ETIQUETA } from '../lib/categorias'
-import { descargarCsv } from '../lib/exportar'
-import { Button } from './ui/Button'
+import { calcularResumenDieta } from '../lib/dietaResumen'
 
 interface DietaPanelProps {
   alimentosRef: RefObject<Alimento[]>
@@ -27,6 +26,9 @@ const FORMATO_COP = new Intl.NumberFormat('es-CO', { style: 'currency', currency
  * ChromosomeStrip (tira de "genotipo" por categoría) que se sacó: incluso
  * con leyenda y subtítulo no comunicaba nada que la tabla de detalle no
  * dijera ya con nombres y números reales.
+ *
+ * La descarga (CSV + PNG por separado) se centralizó en un solo botón de PDF
+ * en App.tsx — ver lib/exportarPdf.ts.
  */
 export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanelProps) {
   const [, forzarRender] = useState(0)
@@ -59,23 +61,7 @@ export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanel
     )
   }
 
-  const elegidos = alimentos
-    .map((a, i) => ({ alimento: a, porciones: genoma[i] ?? 0 }))
-    .filter((f) => f.porciones > 0)
-
-  const costoTotal = elegidos.reduce((acc, f) => acc + f.alimento.precio_cop * f.porciones, 0)
-
-  const macros = alimentos.reduce(
-    (acc, a, i) => {
-      const p = genoma[i] ?? 0
-      acc.kcal += a.kcal * p
-      acc.proteina_g += a.proteina_g * p
-      acc.carbohidratos_g += a.carbohidratos_g * p
-      acc.grasa_g += a.grasa_g * p
-      return acc
-    },
-    { kcal: 0, proteina_g: 0, carbohidratos_g: 0, grasa_g: 0 },
-  )
+  const { elegidos, macros, costoTotal } = calcularResumenDieta(alimentos, genoma)
 
   // Ninguno de los 4 colores es --ios-red a propósito: ese color queda
   // reservado exclusivamente para la señal de "te pasaste de la meta"
@@ -105,24 +91,6 @@ export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanel
     })
 
   const categoriasPresentes = [...new Set(elegidos.map((f) => f.alimento.categoria))]
-
-  function handleDescargarCsv() {
-    descargarCsv(
-      'the-cheshire-diet.csv',
-      ['Alimento', 'Categoría', 'Porciones', 'Unidad', 'kcal', 'Proteína (g)', 'Carbohidratos (g)', 'Grasa (g)', 'Costo (COP)'],
-      elegidos.map((f) => [
-        f.alimento.nombre,
-        CATEGORIA_ETIQUETA[f.alimento.categoria] ?? f.alimento.categoria,
-        f.porciones,
-        f.alimento.unidad,
-        (f.alimento.kcal * f.porciones).toFixed(0),
-        (f.alimento.proteina_g * f.porciones).toFixed(1),
-        (f.alimento.carbohidratos_g * f.porciones).toFixed(1),
-        (f.alimento.grasa_g * f.porciones).toFixed(1),
-        (f.alimento.precio_cop * f.porciones).toFixed(0),
-      ]),
-    )
-  }
 
   return (
     <div className="dieta-panel">
@@ -189,11 +157,6 @@ export function DietaPanel({ alimentosRef, genomaRef, objetivosRef }: DietaPanel
               ))}
             </tbody>
           </table>
-        </div>
-        <div className="dieta-descarga">
-          <Button variant="tinted" tono="rosa" onClick={handleDescargarCsv}>
-            Descargar dieta (CSV)
-          </Button>
         </div>
       </Card>
     </div>

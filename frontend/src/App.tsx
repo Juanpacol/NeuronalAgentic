@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type uPlot from 'uplot'
 import './App.css'
 import { ControlPanel } from './components/ControlPanel'
 import { DietaPanel } from './components/DietaPanel'
@@ -11,6 +12,7 @@ import { CheshireGrin } from './components/viz/CheshireGrin'
 import { useEvolutionSocket } from './hooks/useEvolutionSocket'
 import { obtenerOpcionesParametros, precalentarBackend, WS_URL } from './lib/api'
 import { OPCIONES_PARAMETROS_FALLBACK } from './lib/defaults'
+import { generarPdfDieta } from './lib/exportarPdf'
 import type { OpcionesParametros, ParametrosAG } from './lib/tipos'
 
 /**
@@ -28,6 +30,7 @@ function App() {
   const [inicioMs, setInicioMs] = useState<number | null>(null)
   const [ajustesAbiertos, setAjustesAbiertos] = useState(true)
   const [docAbierta, setDocAbierta] = useState(false)
+  const plotRef = useRef<uPlot | null>(null)
 
   const {
     status,
@@ -64,6 +67,15 @@ function App() {
     setInicioMs(null)
   }
 
+  function handleDescargarPdf() {
+    generarPdfDieta({
+      alimentos: alimentosRef.current ?? [],
+      genoma: genomaRef.current ?? [],
+      objetivos: objetivosRef.current,
+      canvasGrafica: plotRef.current?.ctx.canvas ?? null,
+    })
+  }
+
   return (
     <div className="app">
       <header className="app-header">
@@ -83,6 +95,14 @@ function App() {
         <button type="button" className="boton boton-plain" onClick={() => setDocAbierta(true)}>
           Cómo funciona
         </button>
+        <button
+          type="button"
+          className="boton boton-tinted"
+          onClick={handleDescargarPdf}
+          disabled={!stats}
+        >
+          Descargar informe (PDF)
+        </button>
       </div>
 
       {docAbierta && <Documentacion onCerrar={() => setDocAbierta(false)} />}
@@ -93,7 +113,13 @@ function App() {
 
       <DietaPanel alimentosRef={alimentosRef} genomaRef={genomaRef} objetivosRef={objetivosRef} />
 
-      <FitnessChart historia={historia} activo={status === 'running'} />
+      <FitnessChart
+        historia={historia}
+        activo={status === 'running'}
+        onPlotListo={(plot) => {
+          plotRef.current = plot
+        }}
+      />
 
       {ajustesAbiertos && (
         <div className="sidebar-backdrop" onClick={() => setAjustesAbiertos(false)} />
