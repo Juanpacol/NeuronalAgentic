@@ -44,7 +44,12 @@ frente a 80-150 KB de un PNG equivalente, y además se ve nítido a cualquier re
 docker compose up
 ```
 
-Backend en `http://localhost:8000`, frontend en `http://localhost:5173`.
+Backend en `http://localhost:8000`, frontend en `http://localhost:5173`. Si esos puertos ya
+están ocupados por otro proyecto, cambia el mapeo sin tocar el archivo:
+
+```bash
+BACKEND_PORT=8091 FRONTEND_PORT=5174 docker compose up
+```
 
 ### Sin Docker (manual — dos terminales)
 

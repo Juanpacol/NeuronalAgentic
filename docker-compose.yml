@@ -4,9 +4,9 @@ services:
       context: ./backend
       target: dev
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     environment:
-      ALLOWED_ORIGINS: http://localhost:5173
+      ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-5173}
       MAX_RUNS_CONCURRENTES: "2"
     volumes:
       - ./backend:/app
@@ -21,10 +21,10 @@ services:
       context: ./frontend
       target: dev
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT:-5173}:5173"
     environment:
-      VITE_API_URL: http://localhost:8000
-      VITE_WS_URL: ws://localhost:8000/ws
+      VITE_API_URL: http://localhost:${BACKEND_PORT:-8000}
+      VITE_WS_URL: ws://localhost:${BACKEND_PORT:-8000}/ws
     volumes:
       - ./frontend:/app
       - /app/node_modules
